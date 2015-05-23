@@ -6,6 +6,10 @@ $availableCodes = array();
 $defaultCodes = Zend_Locale::getDefault();
 $defaultCode = current(array_keys($defaultCodes));
 
+if (! isset($lang)) {
+    $lang = $defaultCode;
+}
+
 if (plugin_is_active('Locale')) {
     $plugin = new LocalePlugin();
     $defaultCode = $plugin->filterLocale(null);
