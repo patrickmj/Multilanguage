@@ -1,0 +1,14 @@
+ul.multilanguage {
+    padding-left: 0px;
+    margin: 0px;
+}
+
+li.multilanguage-code {
+    cursor: pointer;
+    display: inline;
+    margin-left: 4px;
+}
+
+div#multilanguage-modal {
+    display: none;
+}
