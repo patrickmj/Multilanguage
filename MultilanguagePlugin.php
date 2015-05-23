@@ -64,35 +64,38 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
     
     public function filterLocale($locale)
     {
-        
+        $defaultCodes = Zend_Locale::getDefault();
+        $defaultCode = current(array_keys($defaultCodes));
+        if (empty($locale)) {
+            $this->locale_code = $defaultCode;
+        } else {
+            $this->locale_code = $locale;
+        }
+
         $this->_translationTable = $this->_db->getTable('MultilanguageTranslation');
         $user = current_user();
         $userPrefLanguageCode = false;
         $userPrefLanguage = false;
         if ($user) {
-            debug('user');
             $prefLanguages = $this->_db->getTable('MultilanguageUserLanguage')->findBy(array('user_id' => $user->id));
             if ( ! empty($prefLanguages)) {
-                debug('wtf');
                 $userPrefLanguage = $prefLanguages[0];
                 $userPrefLanguageCode = $userPrefLanguage->lang;
                 $this->locale_code = $userPrefLanguageCode;
             }
         }
         if (! $userPrefLanguageCode) {
-            debug('no user code');
             $codes = unserialize( get_option('multilanguage_language_codes') );
+            //dump the site's default code to the end as a fallback
+            $codes[] = $defaultCode;
             $browserCodes = array_keys(Zend_Locale::getBrowser());
-            $defaultCodes = Zend_Locale::getDefault();
-            $this->locale_code = current(array_keys($defaultCodes));
             foreach ($browserCodes as $browserCode) {
                 if (in_array($browserCode, $codes)) {
                     $this->locale_code = $browserCode;
-                    continue;
+                    break;
                 }
             }
         }
-
         //weird to be adding filters here, but translations weren't happening consistently when it was in setUp
         
         $translatableElements = unserialize(get_option('multilanguage_elements'));
@@ -103,11 +106,9 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
                     add_filter(array('ElementInput', 'Item', $elementSet, $element), array($this, 'translateField'), 1);
                     add_filter(array('Display', 'Collection', $elementSet, $element), array($this, 'translate'), 1);
                     add_filter(array('ElementInput', 'Collection', $elementSet, $element), array($this, 'translateField'), 1);
-                    
                 }
             }
         }
-        
         return $this->locale_code;
     }
 
@@ -231,7 +232,8 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
         $db = $this->_db;
         $record = $args['record'];
         //since I'm being cheap and not differentiating Items vs Collections
-        //or any other ActsAsElementText, I risk getting null values here
+        //or any other ActsAsElementText up above in the filter definitions (themselves weird), 
+        //I risk getting null values here
         //after the filter happens for 'element_text'
         if (! empty($args['element_text'])) {
             $elementText = $args['element_text'];

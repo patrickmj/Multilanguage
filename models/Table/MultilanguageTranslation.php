@@ -11,7 +11,6 @@ class Table_MultilanguageTranslation extends Omeka_Db_Table
                       'locale_code' => $locale_code,
                       'text'        => $text
                 );
-        debug(print_r($params, true));
         $select = $this->getSelectForFindBy($params);
         return $this->fetchObject($select);
     }
