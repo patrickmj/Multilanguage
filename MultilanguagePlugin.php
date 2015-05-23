@@ -71,7 +71,6 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
         } else {
             $this->locale_code = $locale;
         }
-
         $this->_translationTable = $this->_db->getTable('MultilanguageTranslation');
         $user = current_user();
         $userPrefLanguageCode = false;
