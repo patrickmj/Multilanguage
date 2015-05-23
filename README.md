@@ -37,7 +37,7 @@ you will have to recreate your pages and exhibits in the new languages.
 
 ## Base Languages
 
-Omeka has its own system for i18n of core admin text. This plugins does not address core text in any way.
+Omeka has its own system for i18n of core admin text. This plugin does not address core text in any way.
 
 Language options are based on the existance of core translation files.
 
