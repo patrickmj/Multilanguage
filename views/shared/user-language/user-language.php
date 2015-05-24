@@ -1,5 +1,5 @@
 <?php
-echo head(array('title' => __('Prefered Language')));
+echo head(array('title' => __('Preferred Language')));
 
 $codes = unserialize( get_option('multilanguage_language_codes') );
 $availableCodes = array();
