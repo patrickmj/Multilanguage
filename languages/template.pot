@@ -1,0 +1,75 @@
+# Translation for the Multilanguage plugin for Omeka.
+# Copyright (C) 2014 Patrick Murray-John
+# This file is distributed under the same license as the Omeka package.
+# Patrick Murray-John <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Locale\n"
+"Report-Msgid-Bugs-To: http://github.com/patrickmj/Multilanguage/issues\n"
+"POT-Creation-Date: 2014-09-21 17:49-0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Multilanguage"
+msgstr ""
+
+#: MultilanguagePlugin.php:56 MultilanguagePlugin.php:62
+#: views/shared/user-language/user-language.php:2
+msgid "Preferred Language"
+msgstr ""
+
+#: MultilanguagePlugin.php:64
+msgid "Multilanguage Content"
+msgstr ""
+
+#: MultilanguagePlugin.php:228
+msgid "Translate to: "
+msgstr ""
+
+#: config_form.php:4
+msgid "Select the languages into which your site can be translated."
+msgstr ""
+
+#: config_form.php:41
+msgid ""
+"The languages available to translate content. To learn more about "
+"translating the core interfaces, <a href='http://omeka.org/codex/"
+"Translate_Omeka'>read this</a>."
+msgstr ""
+
+#: config_form.php:49
+msgid "Check the metadata fields that you want to make translatable."
+msgstr ""
+
+#: views/admin/translations/content-language.php:2
+msgid "Content Languages"
+msgstr ""
+
+#: views/admin/translations/content-language.php:25
+#, php-format
+msgid "Default language is %s"
+msgstr ""
+
+#: views/admin/translations/content-language.php:26
+msgid "Exhibits"
+msgstr ""
+
+#: views/admin/translations/content-language.php:43
+msgid "Simple Pages"
+msgstr ""
+
+#: views/shared/user-language/user-language.php:40
+msgid "Select your prefered language"
+msgstr ""
+
+#: views/shared/user-language/user-language.php:43
+#, php-format
+msgid "The default language is %s"
+msgstr ""

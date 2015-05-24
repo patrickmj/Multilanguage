@@ -8,6 +8,7 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
             'config_form',
             'admin_head',
             'admin_footer',
+            'initialize',
             'exhibits_browse_sql',
             'simple_pages_pages_browse_sql'
             );
@@ -22,6 +23,10 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
     
     protected $locale_code;
     
+    public function hookInitialize($args)
+    {
+        add_translation_source(dirname(__FILE__) . '/languages');
+    }
     
     public function hookExhibitsBrowseSql($args)
     {
