@@ -61,3 +61,5 @@ Interactions with other plugins might produce unexpected results.
 Simple Pages and Exhibits can be assigned a language code from the Multilanguage Content tab. For a multilanguage site,
 you will have to recreate your pages and exhibits in the new languages.
 
+If the plugin is installed, Simple Pages and Exhibits content will disappear without updating the language assignments
+from the Multilanguage Content tab. Each new SP or Exhibit requires a language assignment from that page.
