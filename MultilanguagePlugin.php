@@ -96,7 +96,7 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
             }
         }
         //weird to be adding filters here, but translations weren't happening consistently when it was in setUp
-        
+        //@TODO: check if this oddity is due to setting the priority high
         $translatableElements = unserialize(get_option('multilanguage_elements'));
         if(is_array($translatableElements)) {
             foreach($translatableElements as $elementSet=>$elements) {
@@ -105,6 +105,8 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
                     add_filter(array('ElementInput', 'Item', $elementSet, $element), array($this, 'translateField'), 1);
                     add_filter(array('Display', 'Collection', $elementSet, $element), array($this, 'translate'), 1);
                     add_filter(array('ElementInput', 'Collection', $elementSet, $element), array($this, 'translateField'), 1);
+                    add_filter(array('Display', 'File', $elementSet, $element), array($this, 'translate'), 1);
+                    add_filter(array('ElementInput', 'File', $elementSet, $element), array($this, 'translateField'), 1);
                 }
             }
         }
