@@ -44,9 +44,9 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
             $select = $args['select'];
             $db = get_db();
             $alias = $db->getTable('MultilanguageContentLanguage')->getTableAlias();
-            $spAlias = $db->getTable($model)->getTableAlias();
-            $select->join(array($alias => $db->MultilanguageContentLanguage),
-                            "$alias.record_id = $spAlias.id", array());
+            $modelAlias = $db->getTable($model)->getTableAlias();
+            $select->joinLeft(array($alias => $db->MultilanguageContentLanguage),
+                            "$alias.record_id = $modelAlias.id", array());
             $select->where("$alias.record_type = ?", $model);
             $select->where("$alias.lang = ?", $this->locale_code);
         }
