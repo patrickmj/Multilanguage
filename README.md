@@ -43,11 +43,12 @@ Language options are based on the existance of core translation files.
 
 ## Elements
 
-The translations submitted via the admin screens MUST be IDENTICAL to the original language content. Any edit to the
-Item or Collection elements MUST be followed by a new translation for each value. That is necessary to allow for
+The translations submitted via the admin screens MUST exactly match the original language element content. Any edit to the elements MUST be followed by a new translation for each value. That is necessary to allow for
 translations of multiple values for each element (e.g., multiple subjects, each one translated).
 
 It might work well to solidify the base language text, then do translations. But all workflows differ.
+
+Of course, the translation itself need not actually be a translation of the text -- it could be completely original text in another language -- but it will always have to match with base-language text.
 
 The Dublin Core Title element is tricky. In the flow of filters down to Multilanguage, it is already translated
 from '[Untitled]' into a target language.
