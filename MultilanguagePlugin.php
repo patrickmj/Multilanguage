@@ -92,6 +92,10 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
             $codes = unserialize( get_option('multilanguage_language_codes') );
             //dump the site's default code to the end as a fallback
             $codes[] = $defaultCode;
+            //Reduce to two character code in order two compare
+            for ($temp = 0; $temp < count($codes); $temp++) {
+                $codes[$temp]=substr($codes[$temp], 0, 2);
+            }
             $browserCodes = array_keys(Zend_Locale::getBrowser());
             foreach ($browserCodes as $browserCode) {
                 if (in_array($browserCode, $codes)) {
