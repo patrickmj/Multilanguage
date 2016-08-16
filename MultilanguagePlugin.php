@@ -92,15 +92,33 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
             $codes = unserialize( get_option('multilanguage_language_codes') );
             //dump the site's default code to the end as a fallback
             $codes[] = $defaultCode;
-            //Reduce to two character code in order two compare
-            for ($temp = 0; $temp < count($codes); $temp++) {
-                $codes[$temp]=substr($codes[$temp], 0, 2);
-            }
             $browserCodes = array_keys(Zend_Locale::getBrowser());
+            $match = false;
             foreach ($browserCodes as $browserCode) {
                 if (in_array($browserCode, $codes)) {
                     $this->locale_code = $browserCode;
+                    $match = true;
                     break;
+                }
+            }
+            if (! $match) {
+                // Failed to find browserCode in our language codes.
+                // Try to match a two character code and set it to
+                // the closest equivalent if available.
+                $shortcodes = array();
+                foreach ($codes as $c) {
+                    $shortcodes[] = substr($c, 0, 2);
+                }
+                foreach ($browserCodes as $bcode) {
+                    if (in_array($bcode, $shortcodes)) {
+                        $lenCodes = count($codes);
+                        for ($i = 0; $i < $lenCodes; $i++) {
+                            if (strcmp($bcode, $shortcodes[$i]) == 0) {
+                                $this->locale_code = $codes[$i];
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         }
