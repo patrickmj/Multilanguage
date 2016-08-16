@@ -115,7 +115,7 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
                         for ($i = 0; $i < $lenCodes; $i++) {
                             if (strcmp($bcode, $shortcodes[$i]) == 0) {
                                 $this->locale_code = $codes[$i];
-                                break;
+                                break 2;
                             }
                         }
                     }
