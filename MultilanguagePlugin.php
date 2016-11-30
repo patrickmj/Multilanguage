@@ -66,15 +66,33 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
                 );
         return $nav;
     }
-    
+
+    private function getLocaleFromSession($locale)
+    {
+        $session = new Zend_Session_Namespace;
+
+        if (isset($_GET['lang'])) {
+            $session->lang = html_escape($_GET['lang']);
+        }
+
+        if (isset($session->lang)) {
+            $locale = html_escape($session->lang);
+        }
+
+        return $locale;
+    }
+
     public function filterLocale($locale)
     {
+        $sessionLocale = $this->getLocaleFromSession($locale);
+        $langCodes = unserialize(get_option('multilanguage_language_codes'));
+        $validSessionLocale = in_array($sessionLocale, $langCodes);
         $defaultCodes = Zend_Locale::getDefault();
         $defaultCode = current(array_keys($defaultCodes));
-        if (empty($locale)) {
+        if (! $validSessionLocale) {
             $this->locale_code = $defaultCode;
         } else {
-            $this->locale_code = $locale;
+            $this->locale_code = $sessionLocale;
         }
         $this->_translationTable = $this->_db->getTable('MultilanguageTranslation');
         $user = current_user();
@@ -88,8 +106,9 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
                 $this->locale_code = $userPrefLanguageCode;
             }
         }
-        if (! $userPrefLanguageCode) {
-            $codes = unserialize( get_option('multilanguage_language_codes') );
+
+        if (! $validSessionLocale && ! $userPrefLanguageCode) {
+            $codes = $langCodes;
             //dump the site's default code to the end as a fallback
             $codes[] = $defaultCode;
             $browserCodes = array_keys(Zend_Locale::getBrowser());
