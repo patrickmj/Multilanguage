@@ -10,24 +10,48 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
             'admin_footer',
             'initialize',
             'exhibits_browse_sql',
+            'items_browse_sql',
             'simple_pages_pages_browse_sql'
             );
-    
+
     protected $_filters = array(
             'locale',
             'guest_user_links',
             'admin_navigation_main',
             );
-    
+
     protected $_translationTable = null;
-    
+
     protected $locale_code;
-    
+
     public function hookInitialize($args)
     {
         add_translation_source(dirname(__FILE__) . '/languages');
     }
-    
+
+    public function hookUpgrade($args)
+    {
+        $old = $args['old_version'];
+        $db = $this->_db;
+
+        if (version_compare($old, '1.1', '<')) {
+            $defaultLocale = $this->default_code;
+            $oldDefault = Zend_Locale::getDefault();
+
+            $sql = "UPDATE $db->MultilanguageUserLanguage
+                    SET lang='$defaultLocale' WHERE lang='$oldDefault'";
+            $db->query($sql);
+
+            $sql = "UPDATE $db->MultilanguageContentLanguage SET
+                    SET lang='$defaultLocale' WHERE lang='$oldDefault'";
+            $db->query($sql);
+
+            $sql = "UPDATE $db->MultilanguageTranslation
+                    SET lang='$defaultLocale' WHERE lang='$oldDefault'";
+            $db->query($sql);
+        }
+    }
+
     public function hookExhibitsBrowseSql($args)
     {
         $this->modelBrowseSql($args, 'Exhibit');
@@ -37,7 +61,7 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
     {
         $this->modelBrowseSql($args, 'SimplePagesPage');
     }
-    
+
     public function modelBrowseSql($args, $model)
     {
         if (! is_admin_theme()) {
@@ -51,12 +75,36 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
             $select->where("$alias.lang = ?", $this->locale_code);
         }
     }
+
+    /**
+     * Also search items/browse results on translated text.
+     */
+    public function hookItemsBrowseSql($args)
+    {
+        if ($this->locale_code != $this->default_code
+            && ! is_admin_theme()
+            && isset($args['params']['search'])
+        ) {
+            $search = $args['params']['search'];
+            $model = 'Item';
+            $db = $this->_db;
+            $alias = $db->getTable('MultilanguageTranslation')->getTableAlias();
+            $modelAlias = $db->getTable($model)->getTableAlias();
+            $select = $args['select'];
+            $select->joinLeft(array($alias => $db->MultilanguageTranslation),
+                            "$alias.record_id = $modelAlias.id", array());
+            $select->orwhere("$alias.record_type = ?", $model);
+            $select->where("$alias.locale_code = ?", $this->locale_code);
+            $select->where("$alias.translation LIKE ?", "%$search%");
+        }
+    }
+
     public function filterGuestUserLinks($links)
     {
         $links['Multilanguage'] = array('label' => __('Preferred Language'), 'uri' => url('multilanguage/user-language/user-language'));
         return $links;
     }
-    
+
     public function filterAdminNavigationMain($nav)
     {
         $nav['Multilanguage'] = array('label' => __('Preferred Language'), 'uri' => url('multilanguage/user-language/user-language'));
@@ -87,8 +135,9 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
         $sessionLocale = $this->getLocaleFromSession($locale);
         $langCodes = unserialize(get_option('multilanguage_language_codes'));
         $validSessionLocale = in_array($sessionLocale, $langCodes);
-        $defaultCodes = Zend_Locale::getDefault();
-        $defaultCode = current(array_keys($defaultCodes));
+        $defaultCode = Zend_Registry::get('bootstrap')
+            ->getResource('Config')->locale->name;
+        $this->default_code = $defaultCode;
         if (! $validSessionLocale) {
             $this->locale_code = $defaultCode;
         } else {
@@ -164,19 +213,19 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
         echo "<div id='multilanguage-modal'>
         <textarea id='multilanguage-translation'></textarea>
         </div>";
-        
+
         echo "<script type='text/javascript'>
         var baseUrl = '" . WEB_ROOT . "';
         </script>
         ";
     }
-    
+
     public function hookAdminHead()
     {
         queue_css_file('multilanguage');
         queue_js_file('multilanguage');
     }
-    
+
     public function hookInstall()
     {
         $db = $this->_db;
@@ -193,9 +242,9 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageTranslation (
   KEY `element_id` (`element_id`,`record_id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
                     ";
-        
+
         $db->query($sql);
-        
+
         $sql = "
 CREATE TABLE IF NOT EXISTS $db->MultilanguageContentLanguage (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -205,9 +254,9 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageContentLanguage (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
         ";
-        
+
         $db->query($sql);
-        
+
         $sql = "
 
 CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
@@ -217,25 +266,25 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_id` (`user_id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
-        
+
         ";
-        
+
         $db->query($sql);
     }
-    
+
     public function hookUninstall()
     {
         $db = $this->_db;
         $sql = "DROP TABLE $db->MultilanguageTranslation ";
         $db->query($sql);
-        
+
         $sql = "DROP TABLE $db->MultilanguageContentLanguage ";
         $db->query($sql);
 
-        
+
         $sql = "DROP TABLE $db->MultilanguageUserLanguage";
         $db->query($sql);
-        
+
     }
 
     public function hookConfig($args)
@@ -259,7 +308,7 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
     {
         include('config_form.php');
     }
-    
+
     public function translateField($components, $args)
     {
         $record = $args['record'];
@@ -273,20 +322,20 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
         $components['form_controls'] .= "<ul class='multilanguage' >$html</ul>";
         return $components;
     }
-    
+
     public function translate($translateText, $args)
     {
         $db = $this->_db;
         $record = $args['record'];
         //since I'm being cheap and not differentiating Items vs Collections
-        //or any other ActsAsElementText up above in the filter definitions (themselves weird), 
+        //or any other ActsAsElementText up above in the filter definitions (themselves weird),
         //I risk getting null values here
         //after the filter happens for 'element_text'
         if (! empty($args['element_text'])) {
             $elementText = $args['element_text'];
-        
+
             $elementId = $elementText->element_id;
-            
+
             $translation = $db->getTable('MultilanguageTranslation')->getTranslation($record->id, get_class($record), $elementId, $this->locale_code, $translateText);
             if ($translation) {
                 $translateText = $translation->translation;
@@ -294,4 +343,24 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
         }
         return $translateText;
     }
+
+    /**
+     * @param Omeka_Db_Select $select
+     * @param array $params
+     */
+    public function hookSearchSql($select, $params) // was $args, $model
+    {
+        die(print_r($select));
+        if (! is_admin_theme()) {
+            $select = $args['select'];
+            $db = get_db();
+            $alias = $db->getTable('MultilanguageContentLanguage')->getTableAlias();
+            $modelAlias = $db->getTable($model)->getTableAlias();
+            $select->joinLeft(array($alias => $db->MultilanguageContentLanguage),
+                            "$alias.record_id = $modelAlias.id", array());
+            $select->where("$alias.record_type = ?", $model);
+            $select->where("$alias.lang = ?", $this->locale_code);
+        }
+    }
+
 }

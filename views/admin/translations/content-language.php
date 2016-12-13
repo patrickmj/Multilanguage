@@ -2,8 +2,7 @@
 echo head(array('title' => __('Content Languages')));
 $tempCodes = unserialize(get_option('multilanguage_language_codes'));
 
-$defaultCodes = Zend_Locale::getDefault();
-$defaultCode = current(array_keys($defaultCodes));
+$defaultCode = Zend_Registry::get('bootstrap')->getResource('Config')->locale->name;
 
 if (plugin_is_active('Locale')) {
     $plugin = new LocalePlugin();
@@ -34,7 +33,7 @@ $codes = array($defaultCode => $defaultCode) + $codes;
     <li>
     <?php echo get_view()->formSelect("exhibits[$exhibit->id]", $code, null, $codes);   ?>
     <?php echo $exhibit->title; ?>
-    
+
     </li>
     <?php endforeach; ?>
     </ul>
@@ -50,7 +49,7 @@ $codes = array($defaultCode => $defaultCode) + $codes;
     <li>
     <?php echo get_view()->formSelect("simple_pages_page[$page->id]", $code, null, $codes);   ?>
     <?php echo $page->title; ?>
-    
+
     </li>
     <?php endforeach; ?>
     </ul>
@@ -58,7 +57,7 @@ $codes = array($defaultCode => $defaultCode) + $codes;
 <?php endif;?>
 
 </section>
-    
+
 <section class="three columns omega">
     <div class="panel" id="save">
         <input type="submit" class="submit big green button" value="Save Changes" id="save-changes" name="submit">
@@ -68,6 +67,6 @@ $codes = array($defaultCode => $defaultCode) + $codes;
 </form>
 
 
-<?php 
+<?php
 echo foot();
 ?>
