@@ -3,6 +3,7 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
 {
     protected $_hooks = array(
             'install',
+            'upgrade',
             'uninstall',
             'config',
             'config_form',
@@ -35,19 +36,22 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
         $db = $this->_db;
 
         if (version_compare($old, '1.1', '<')) {
-            $defaultLocale = $this->default_code;
-            $oldDefault = Zend_Locale::getDefault();
+            $defaultLocale = Zend_Registry::get('bootstrap')
+                ->getResource('Config')->locale->name;
+            $oldDefaultCodes = Zend_Locale::getDefault();
+            $oldDefault = current(array_keys($oldDefaultCodes));
 
             $sql = "UPDATE $db->MultilanguageUserLanguage
                     SET lang='$defaultLocale' WHERE lang='$oldDefault'";
             $db->query($sql);
 
-            $sql = "UPDATE $db->MultilanguageContentLanguage SET
+            $sql = "UPDATE $db->MultilanguageContentLanguage
                     SET lang='$defaultLocale' WHERE lang='$oldDefault'";
             $db->query($sql);
 
             $sql = "UPDATE $db->MultilanguageTranslation
-                    SET lang='$defaultLocale' WHERE lang='$oldDefault'";
+                    SET locale_code='$defaultLocale'
+                    WHERE locale_code='$oldDefault'";
             $db->query($sql);
         }
     }
