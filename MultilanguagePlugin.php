@@ -85,21 +85,46 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
      */
     public function hookItemsBrowseSql($args)
     {
-        if ($this->locale_code != $this->default_code
-            && ! is_admin_theme()
-            && isset($args['params']['search'])
-        ) {
+        if ( !is_admin_theme() && isset($args['params']['search']) ) {
+            $unknownPrevLocale = isset($args['params']['lang']);
+            $isDefaultCode = $this->locale_code == $this->default_code;
+
+            if (!$unknownPrevLocale && $isDefaultCode) {
+                return;
+            }
+
             $search = $args['params']['search'];
-            $model = 'Item';
             $db = $this->_db;
-            $alias = $db->getTable('MultilanguageTranslation')->getTableAlias();
-            $modelAlias = $db->getTable($model)->getTableAlias();
+
+            // Remove practically everything from the previous select statement.
             $select = $args['select'];
-            $select->joinLeft(array($alias => $db->MultilanguageTranslation),
-                            "$alias.record_id = $modelAlias.id", array());
-            $select->orwhere("$alias.record_type = ?", $model);
-            $select->where("$alias.locale_code = ?", $this->locale_code);
-            $select->where("$alias.translation LIKE ?", "%$search%");
+            $order = $select->getPart('order'); // save the order
+            $group = $select->getPart('group');
+            $toRemove = array('group', 'order', 'from', 'where', 'columns');
+            foreach ($toRemove as $part) {
+                $select->reset($part);
+            }
+
+            $it = $db->getTable('Item')->getTableAlias();
+            $mlt = $db->getTable('MultilanguageTranslation')->getTableAlias();
+            $select->from(array($it => $db->Item));
+            $select->joinLeft(
+                array($mlt => $db->MultilanguageTranslation),
+                "$mlt.record_id = $it.id", array()
+            );
+            $select->where("$mlt.record_type = 'Item'");
+            $select->where("$mlt.locale_code = ?", $this->locale_code);
+            $select->where("$mlt.translation LIKE ?", "%$search%");
+            foreach ($order as $o) {
+                $orderStr = '';
+                if (is_array($o)) {
+                    $orderStr = implode(' ', $o);
+                } else {
+                    $orderStr = $o;
+                }
+                $select->order($orderStr);
+            }
+            $select->group($group);
         }
     }
 
@@ -346,25 +371,6 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
             }
         }
         return $translateText;
-    }
-
-    /**
-     * @param Omeka_Db_Select $select
-     * @param array $params
-     */
-    public function hookSearchSql($select, $params) // was $args, $model
-    {
-        die(print_r($select));
-        if (! is_admin_theme()) {
-            $select = $args['select'];
-            $db = get_db();
-            $alias = $db->getTable('MultilanguageContentLanguage')->getTableAlias();
-            $modelAlias = $db->getTable($model)->getTableAlias();
-            $select->joinLeft(array($alias => $db->MultilanguageContentLanguage),
-                            "$alias.record_id = $modelAlias.id", array());
-            $select->where("$alias.record_type = ?", $model);
-            $select->where("$alias.lang = ?", $this->locale_code);
-        }
     }
 
 }
