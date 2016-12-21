@@ -11,7 +11,6 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
             'admin_footer',
             'initialize',
             'exhibits_browse_sql',
-            'items_browse_sql',
             'simple_pages_pages_browse_sql'
             );
 
@@ -77,54 +76,6 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
                             "$alias.record_id = $modelAlias.id", array());
             $select->where("$alias.record_type = ?", $model);
             $select->where("$alias.lang = ?", $this->locale_code);
-        }
-    }
-
-    /**
-     * Also search items/browse results on translated text.
-     */
-    public function hookItemsBrowseSql($args)
-    {
-        if ( !is_admin_theme() && isset($args['params']['search']) ) {
-            $unknownPrevLocale = isset($args['params']['lang']);
-            $isDefaultCode = $this->locale_code == $this->default_code;
-
-            if (!$unknownPrevLocale && $isDefaultCode) {
-                return;
-            }
-
-            $search = $args['params']['search'];
-            $db = $this->_db;
-
-            // Remove practically everything from the previous select statement.
-            $select = $args['select'];
-            $order = $select->getPart('order'); // save the order
-            $group = $select->getPart('group');
-            $toRemove = array('group', 'order', 'from', 'where', 'columns');
-            foreach ($toRemove as $part) {
-                $select->reset($part);
-            }
-
-            $it = $db->getTable('Item')->getTableAlias();
-            $mlt = $db->getTable('MultilanguageTranslation')->getTableAlias();
-            $select->from(array($it => $db->Item));
-            $select->joinLeft(
-                array($mlt => $db->MultilanguageTranslation),
-                "$mlt.record_id = $it.id", array()
-            );
-            $select->where("$mlt.record_type = 'Item'");
-            $select->where("$mlt.locale_code = ?", $this->locale_code);
-            $select->where("$mlt.translation LIKE ?", "%$search%");
-            foreach ($order as $o) {
-                $orderStr = '';
-                if (is_array($o)) {
-                    $orderStr = implode(' ', $o);
-                } else {
-                    $orderStr = $o;
-                }
-                $select->order($orderStr);
-            }
-            $select->group($group);
         }
     }
 
