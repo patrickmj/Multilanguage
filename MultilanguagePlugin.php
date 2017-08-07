@@ -67,16 +67,15 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
         return $nav;
     }
 
-    private function getLocaleFromSession($locale)
+    private function getLocaleFromGetOrSession($locale)
     {
         $session = new Zend_Session_Namespace;
 
         if (isset($_GET['lang'])) {
-            $session->lang = html_escape($_GET['lang']);
-        }
-
-        if (isset($session->lang)) {
-            $locale = html_escape($session->lang);
+            $locale = html_escape($_GET['lang']);
+            $session->lang = $locale;
+        } elseif (isset($session->lang)) {
+            $locale = $session->lang;
         }
 
         return $locale;
@@ -84,7 +83,7 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
 
     public function filterLocale($locale)
     {
-        $sessionLocale = $this->getLocaleFromSession($locale);
+        $sessionLocale = $this->getLocaleFromGetOrSession($locale);
         $langCodes = unserialize(get_option('multilanguage_language_codes'));
         $validSessionLocale = in_array($sessionLocale, $langCodes);
         $defaultCodes = Zend_Locale::getDefault();
