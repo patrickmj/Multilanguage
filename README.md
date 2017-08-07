@@ -1,10 +1,5 @@
-# Multilanguage (language selection fork)
+# Multilanguage
 A limited attempt to make parts of Omeka multilanguage
-
-NOTE: This is a fork intended to add language selection features for users
-who are not logged in. Passing a GET parameter like "?lang=en_US" with lang set
-to the appropriate locale code and the language selection will be stored
-in an Omeka session.
 
 # Installation and Configuration
 
