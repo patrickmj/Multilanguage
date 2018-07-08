@@ -58,31 +58,6 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
         $this->_helper->json($translation);
     }
 
-    public function contentLanguageAction()
-    {
-        $db = get_db();
-        if (plugin_is_active('ExhibitBuilder')) {
-            $exhibits = $db->getTable('Exhibit')->findAll();
-            $this->view->exhibits = $exhibits;
-        }
-
-        if (plugin_is_active('SimplePages')) {
-            $simplePages = $db->getTable('SimplePagesPage')->findAll();
-            $this->view->simple_pages = $simplePages;
-        }
-
-        if ($this->getRequest()->isPost()) {
-            $exhibitLangs = $this->getParam('exhibits');
-            foreach ($exhibitLangs as $recordId => $lang) {
-                $this->updateContentLang('Exhibit', $recordId, $lang);
-            }
-            $simplePages = $this->getParam('simple_pages_page');
-            foreach ($simplePages as $recordId => $lang) {
-                $this->updateContentLang('SimplePagesPage', $recordId, $lang);
-            }
-        }
-    }
-
     public function localeCodeRecordAction()
     {
         $recordType = $_GET['record_type'];

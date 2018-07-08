@@ -27,7 +27,6 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
     );
 
     protected $_filters = array(
-        'admin_navigation_main',
         'guest_user_links',
         'locale',
         // Note: the filter locale adds some filters.
@@ -256,14 +255,6 @@ ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
             $select->where("$alias.record_type = ?", $model);
             $select->where("$alias.lang = ?", $this->locale_code);
         }
-    }
-    public function filterAdminNavigationMain($nav)
-    {
-        $nav['Multilanguage_content'] = array(
-            'label' => __('Multilanguage Content'),
-            'uri' => url('multilanguage/translations/content-language'),
-        );
-        return $nav;
     }
 
     public function filterGuestUserLinks($links)
