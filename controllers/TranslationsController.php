@@ -83,6 +83,18 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
         }
     }
 
+    public function listLocaleCodesRecordAction()
+    {
+        if (empty($_GET['record_type'])) {
+            $this->_helper->json(array());
+            return;
+        }
+        $db = get_db();
+        $languageCodes = $db->getTable('MultilanguageContentLanguage')
+            ->findLocaleCodes($_GET['record_type']);
+        $this->_helper->json($languageCodes);
+    }
+
     protected function updateContentLang($recordType, $recordId, $lang)
     {
         $contentLanguage = $this->fetchContentLanguageRecord($recordType, $recordId);

@@ -12,3 +12,11 @@ li.multilanguage-code {
 div#multilanguage-modal {
     display: none;
 }
+
+.simple-pages .locale-code {
+    opacity: 0.6;
+}
+
+.simple-pages #page-hierarchy .locale-code {
+    padding-left: 4px;
+}

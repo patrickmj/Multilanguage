@@ -1,5 +1,8 @@
 jQuery(document).ready(function() {
 
+    /**
+     * Add a form to translate record metadata.
+     */
     jQuery('#edit-form').on('click', '.multilanguage-code', function() {
         var dialog, data;
         var target = jQuery(this);
@@ -56,3 +59,50 @@ jQuery(document).ready(function() {
     });
 
 });
+
+/**
+ * Add some js for translation after an admin page is loaded.
+ *
+ * The use of a js is required, since the plugins doesn't throw events.
+ */
+(function($, window, document) {
+    $(function() {
+
+        /**
+         * Display the language of each simple page.
+         */
+
+        // It's quicker to get all codes in one query, since there are a few.
+        $('.simple-pages #content tbody').filter(':first').each(function(index) {
+            var data = {'record_type' : 'SimplePagesPage'};
+            var list = $(this);
+            $.get(baseUrl + '/admin/multilanguage/translations/list-locale-codes-record',
+                data,
+                function(localeCodes) {
+                    list.find('span.title').each(function(index) {
+                        var record_id = $(this).parent('td').find('.action-links li a.edit').attr('href').split('/').pop();
+                        $(this).append(
+                            $(' <span class="locale-code"></span>').text('[' + localeCodes[record_id] + ']')
+                        );
+                    });
+                }
+            );
+        });
+        $('.simple-pages #page-hierarchy').filter(':first').each(function(index) {
+            var data = {'record_type' : 'SimplePagesPage'};
+            var list = $(this);
+            $.get(baseUrl + '/admin/multilanguage/translations/list-locale-codes-record',
+                data,
+                function(localeCodes) {
+                    list.find('li p a:first-child').each(function(index) {
+                        var record_id = $(this).parent('p').find('a.edit').attr('href').split('/').pop();
+                        $(this).after(
+                            $(' <span class="locale-code"></span>').text('[' + localeCodes[record_id] + ']')
+                        );
+                    });
+                }
+            );
+        });
+
+    });
+}(window.jQuery, window, document));
