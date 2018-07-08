@@ -24,6 +24,53 @@ class Table_MultilanguageRelatedRecord extends Omeka_Db_Table
     }
 
     /**
+     * Get all source records related to a record (simple page, exhibit…).
+     *
+     * @param string $recordType
+     * @param int $recordId
+     * @param bool $included Include the specified record to the list.
+     * @return Omeka_Record_AbstractRecord[] List of records.
+     */
+    public function findRelatedSourceRecords($recordType, $recordId, $included = false)
+    {
+        $recordIds = $this->findRelatedRecordIds($recordType, $recordId, $included);
+        if (empty($recordIds)) {
+            return array();
+        }
+        $recordIdsString = implode(',', $recordIds);
+        $select = $this->_db->getTable($recordType)
+            ->getSelect()
+            ->where('id IN (' . $recordIdsString . ')');
+        return $this->fetchObjects($select);
+    }
+
+    /**
+     * Get all source record slugs and ids related to a record (simple page,
+     * exhibit…).
+     *
+     * @param string $recordType
+     * @param int $recordId
+     * @param bool $included Include the specified record to the list.
+     * @return array List of record ids by slug.
+     */
+    public function findRelatedSourceRecordSlugIds($recordType, $recordId, $included = false)
+    {
+        $recordIds = $this->findRelatedRecordIds($recordType, $recordId, $included);
+        if (empty($recordIds)) {
+            return array();
+        }
+        $recordIdsString = implode(',', $recordIds);
+        $columns = array('slug', 'id');
+        $select = $this->_db->getTable($recordType)
+            ->getSelect()
+            ->reset(Zend_Db_Select::COLUMNS)
+            ->from(array(), $columns)
+            ->where('id IN (' . $recordIdsString . ')')
+            ->order(reset($columns));
+        return $this->fetchPairs($select);
+    }
+
+    /**
      * Get all the record ids related to another record (simple page, exhibit…).
      *
      * @param string $recordType

@@ -136,7 +136,7 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
 
         $db = get_db();
         $result  = $db->getTable('MultilanguageRelatedRecord')
-            ->findRelatedRecordIds($recordType, $recordId);
+            ->findRelatedSourceRecordSlugIds($recordType, $recordId);
         $this->_helper->json($result);
     }
 

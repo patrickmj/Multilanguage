@@ -211,7 +211,41 @@ jQuery(document).ready(function() {
                                                     );
                                                 }
                                             });
-                                            $('#related_records').val(relatedRecords);
+                                            var relatedRecordIds = Object.values(relatedRecords);
+                                            $('#related_records').val(relatedRecordIds);
+
+                                            // Links to the related records.
+                                            html = '<div class="field">'
+                                                + '<div>'
+                                                + '<label>Translations</label>'
+                                                + '</div>'
+                                                + '<div class="inputs">'
+                                                + '<ul id="related_record_links"></ul>'
+                                                + '</div>'
+                                                + '</div>';
+                                            form.find('#save').append(html);
+                                            if (relatedRecordIds.length) {
+                                                $.each(relatedRecords, function(text, value) {
+                                                    if (value != record_id) {
+                                                        if (record_type == 'SimplePagesPage') {
+                                                            $('#related_record_links').append(
+                                                                $('<li></li>').html('<a href="' + baseUrl + '/admin/simple-pages/index/edit/id/' + value + '">' + text + '</a>')
+                                                            );
+                                                        } else if (record_type == 'Exhibit') {
+                                                            $('#related_record_links').append(
+                                                                $('<li></li>').html('<a href="' + baseUrl + '/admin/exhibits/edit/' + value + '">' + text + '</a>')
+                                                            );
+                                                        }
+                                                    }
+                                                });
+                                            } else  {
+                                                $('#related_record_links').append(
+                                                    $('<li>No translation</li>')
+                                                );
+                                            }
+
+                                            // Reset the warning for the full form.
+                                            Omeka.warnIfUnsaved();
                                     });
                             });
                     });
