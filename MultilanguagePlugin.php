@@ -34,7 +34,7 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
 
     protected $_options = array(
         'multilanguage_elements' => 'a:1:{s:11:"Dublin Core";a:3:{i:0;s:5:"Title";i:1;s:11:"Description";i:2;s:7:"Subject";}}',
-        'multilanguage_language_codes' => 'a:1:{i:0;s:5:"en_US";}',
+        'multilanguage_language_codes' => 'a:1:{i:0;s:2:"en";}',
     );
 
     protected $_translationTable = null;
@@ -150,7 +150,8 @@ ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
                 $codes[$code] = locale_human($code) . " ($code)";
             }
         }
-        $codes['en_US'] = ucfirst(Zend_Locale::getTranslation('en_US', 'language')) . ' (en_US)';
+        // Set default "en" and instead of "en_US" to avoid issues.
+        $codes['en'] = ucfirst(Zend_Locale::getTranslation('en', 'language')) . ' (en)';
         asort($codes);
 
         $translatableElements = get_option('multilanguage_elements');
