@@ -6,12 +6,12 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
         $db = get_db();
         if ($this->getRequest()->isPost()) {
             if (isset($_POST['translation_id'])) {
-                $translation = $db->
-                    getTable('MultilanguageTranslation')->find($_POST['translation_id']);
+                $translation = $db->getTable('MultilanguageTranslation')
+                    ->find($_POST['translation_id']);
             } else {
                 $translation = new MultilanguageTranslation;
             }
-            
+
             $translation->element_id = $_POST['element_id'];
             $translation->record_id = $_POST['record_id'];
             $translation->record_type = $_POST['record_type'];
@@ -22,21 +22,20 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
             $this->_helper->json('');
         }
     }
-    
+
     public function translationAction()
     {
         $db = get_db();
-        
+
         if (isset($_GET['text'])) {
-            $translation = $db->
-                getTable('MultilanguageTranslation')
+            $translation = $db->getTable('MultilanguageTranslation')
                 ->getTranslation(
-                        $_GET['record_id'],
-                        $_GET['record_type'],
-                        $_GET['element_id'],
-                        $_GET['locale_code'],
-                        $_GET['text']
-            );
+                    $_GET['record_id'],
+                    $_GET['record_type'],
+                    $_GET['element_id'],
+                    $_GET['locale_code'],
+                    $_GET['text']
+                );
             if ($translation) {
                 $translation = $translation->toArray();
             } else {
@@ -48,7 +47,7 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
 
         $this->_helper->json($translation);
     }
-    
+
     public function contentLanguageAction()
     {
         $db = get_db();
@@ -56,24 +55,24 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
             $exhibits = $db->getTable('Exhibit')->findAll();
             $this->view->exhibits = $exhibits;
         }
-        
+
         if (plugin_is_active('SimplePages')) {
             $simplePages = $db->getTable('SimplePagesPage')->findAll();
             $this->view->simple_pages = $simplePages;
         }
-        
+
         if ($this->getRequest()->isPost()) {
             $exhibitLangs = $this->getParam('exhibits');
-            foreach ($exhibitLangs as $recordId=>$lang) {
+            foreach ($exhibitLangs as $recordId => $lang) {
                 $this->updateContentLang('Exhibit', $recordId, $lang);
             }
             $simplePages = $this->getParam('simple_pages_page');
-            foreach ($simplePages as $recordId=>$lang) {
+            foreach ($simplePages as $recordId => $lang) {
                 $this->updateContentLang('SimplePagesPage', $recordId, $lang);
             }
         }
     }
-    
+
     protected function updateContentLang($recordType, $recordId, $lang)
     {
         $contentLanguage = $this->fetchContentLanguageRecord($recordType, $recordId);
@@ -82,14 +81,16 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
         $contentLanguage->lang = $lang;
         $contentLanguage->save();
     }
-    
+
     protected function fetchContentLanguageRecord($recordType, $recordId)
     {
         $table = $this->_helper->db->getTable('MultilanguageContentLanguage');
         $select = $table->getSelectForFindBy(
-                array('record_type' => $recordType,
-                      'record_id'   => $recordId,
-                ));
+            array(
+                'record_type' => $recordType,
+                'record_id' => $recordId,
+            )
+        );
         $contentLanguage = $table->fetchObject($select);
         if ($contentLanguage) {
             return $contentLanguage;

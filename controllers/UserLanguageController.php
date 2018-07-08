@@ -6,15 +6,16 @@ class Multilanguage_UserLanguageController extends Omeka_Controller_AbstractActi
     {
         $this->_helper->db->setDefaultModelName('MultilanguageUserLanguage');
     }
-    
+
     public function userLanguageAction()
     {
         $user = current_user();
-        
-        if (! $user) {
+
+        if (!$user) {
             //go away
         } else {
-            $prefLanguages = $this->_helper->db->getTable('MultilanguageUserLanguage')->findBy(array('user_id' => $user->id));
+            $prefLanguages = $this->_helper->db->getTable('MultilanguageUserLanguage')
+                ->findBy(array('user_id' => $user->id));
             if (empty($prefLanguages)) {
                 $this->view->lang = null;
             } else {
@@ -24,7 +25,7 @@ class Multilanguage_UserLanguageController extends Omeka_Controller_AbstractActi
         }
 
         if ($this->getRequest()->isPost()) {
-            if (! isset($prefLanguage) ) {
+            if (! isset($prefLanguage)) {
                 $prefLanguage = new MultilanguageUserLanguage;
                 $prefLanguage->user_id = $user->id;
             }

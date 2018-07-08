@@ -13,36 +13,40 @@ jQuery(document).ready(function() {
             modal: true,
             open: function(event, ui) {
                 data = {
-                        'record_id'   : target.data('record-id'),
+                        'record_id' : target.data('record-id'),
                         'record_type' : target.data('record-type'),
-                        'element_id'  : target.data('element-id'),
+                        'element_id' : target.data('element-id'),
                         'locale_code' : target.data('code'),
-                        'text'        : text
+                        'text' : text
                     };
                 jQuery.get(baseUrl + '/admin/multilanguage/translations/translation', 
-                        data, 
-                        function(translationData) {
-                            jQuery('#multilanguage-translation').val(translationData.translation);
-                            dialog.translationId = translationData.id;
-                        }
+                    data, 
+                    function(translationData) {
+                        jQuery('#multilanguage-translation').val(translationData.translation);
+                        dialog.translationId = translationData.id;
+                    }
                 );
             },
             buttons: {
                 "Submit translation" : function() {
                     data = {
-                        'record_id'   : target.data('record-id'),
+                        'record_id' : target.data('record-id'),
                         'record_type' : target.data('record-type'),
                         'translation' : jQuery('#multilanguage-translation').val(),
-                        'element_id'  : target.data('element-id'),
+                        'element_id' : target.data('element-id'),
                         'locale_code' : target.data('code'),
-                        'text'        : text,
+                        'text' : text,
                         'translation_id' : dialog.translationId
                     };
-                    jQuery.post(baseUrl + '/admin/multilanguage/translations/translate', data, function() {jQuery('#multilanguage-modal').dialog("close");});
+                    jQuery.post(baseUrl + '/admin/multilanguage/translations/translate',
+                        data,
+                        function() {
+                            jQuery('#multilanguage-modal').dialog("close");
+                        }
+                    );
                 }
             }
         });
     });
+
 });
-
-

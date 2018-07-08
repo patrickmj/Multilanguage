@@ -41,7 +41,7 @@ foreach ($files as $file) {
         $codes[$code] = ucfirst($language) . $region . " ($code)";
     }
 }
-$codes['en'] = ucfirst( Zend_Locale::getTranslation('en', 'language', 'en' ) ) . " (en)";
+$codes['en'] = ucfirst(Zend_Locale::getTranslation('en', 'language', 'en')) . " (en)";
 asort($codes);
 
 ?>
@@ -53,11 +53,10 @@ asort($codes);
     <div class="inputs five columns omega">
         <p class="explanation"><?php echo __("The languages available to translate content. To learn more about translating the core interfaces, <a href='http://omeka.org/codex/Translate_Omeka'>read this</a>."); ?> </p>
         <div class="input-block">
-            <?php echo get_view()->formMultiCheckbox('multilanguage_language_codes', $multilanguageCodes, null, $codes);   ?> 
+            <?php echo get_view()->formMultiCheckbox('multilanguage_language_codes', $multilanguageCodes, null, $codes);   ?>
         </div>
     </div>
 </div>
-
 
 <p><?php echo __('Check the metadata fields that you want to make translatable.'); ?></p>
 
@@ -67,17 +66,17 @@ $data = $elTable->findPairsForSelectForm();
 $translatableElements = unserialize(get_option('multilanguage_elements'));
 $view = get_view();
 $values = array();
-if(is_array($translatableElements)) {
-    foreach($translatableElements as $elSet=>$elements) {
-        foreach($elements as $element) {
+if (is_array($translatableElements)) {
+    foreach ($translatableElements as $elSet => $elements) {
+        foreach ($elements as $element) {
             $elObject = $elTable->findByElementSetNameAndElementName($elSet, $element);
             $values[] = $elObject->id;
         }
     }
 }
 
-if (get_option('show_element_set_headings') ) {
-    foreach($data as $elSet=>$options) {
+if (get_option('show_element_set_headings')) {
+    foreach ($data as $elSet => $options) {
         echo "<div class='field elements'>";
         echo "<h2>$elSet</h2>";
         echo $view->formMultiCheckbox('element_sets', $values, null, $options, '');
