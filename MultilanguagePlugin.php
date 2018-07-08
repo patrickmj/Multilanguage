@@ -14,9 +14,10 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
     );
 
     protected $_filters = array(
-        'locale',
-        'guest_user_links',
         'admin_navigation_main',
+        'guest_user_links',
+        'locale',
+        // Note: the filter locale adds some filters.
     );
 
     protected $_translationTable = null;
@@ -26,6 +27,106 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
     public function hookInitialize($args)
     {
         add_translation_source(dirname(__FILE__) . '/languages');
+    }
+
+    public function hookInstall()
+    {
+        $db = $this->_db;
+        $sql = "
+CREATE TABLE IF NOT EXISTS $db->MultilanguageTranslation (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `element_id` int(11) NOT NULL,
+  `record_id` int(11) NOT NULL,
+  `record_type` tinytext COLLATE utf8_unicode_ci NOT NULL,
+  `locale_code` tinytext COLLATE utf8_unicode_ci NOT NULL,
+  `text` text COLLATE utf8_unicode_ci,
+  `translation` text COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `element_id` (`element_id`,`record_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
+                    ";
+
+        $db->query($sql);
+
+        $sql = "
+CREATE TABLE IF NOT EXISTS $db->MultilanguageContentLanguage (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `record_type` tinytext COLLATE utf8_unicode_ci NOT NULL,
+  `record_id` int(10) unsigned NOT NULL,
+  `lang` tinytext COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
+        ";
+
+        $db->query($sql);
+
+        $sql = "
+
+CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int(10) unsigned NOT NULL,
+  `lang` tinytext COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_id` (`user_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
+
+        ";
+
+        $db->query($sql);
+    }
+
+    public function hookUninstall()
+    {
+        $db = $this->_db;
+        $sql = "DROP TABLE $db->MultilanguageTranslation ";
+        $db->query($sql);
+
+        $sql = "DROP TABLE $db->MultilanguageContentLanguage ";
+        $db->query($sql);
+
+
+        $sql = "DROP TABLE $db->MultilanguageUserLanguage";
+        $db->query($sql);
+    }
+
+    public function hookConfigForm()
+    {
+        include('config_form.php');
+    }
+
+    public function hookConfig($args)
+    {
+        $post = $args['post'];
+        $elements = array();
+        $elTable = get_db()->getTable('Element');
+        foreach ($post['element_sets'] as $elId) {
+            $element = $elTable->find($elId);
+            $elSet = $element->getElementSet();
+            if (!array_key_exists($elSet->name, $elements)) {
+                $elements[$elSet->name] = array();
+            }
+            $elements[$elSet->name][] = $element->name;
+        }
+        set_option('multilanguage_elements', serialize($elements));
+        set_option('multilanguage_language_codes', serialize($post['multilanguage_language_codes']));
+    }
+
+    public function hookAdminHead()
+    {
+        queue_css_file('multilanguage');
+        queue_js_file('multilanguage');
+    }
+
+    public function hookAdminFooter()
+    {
+        echo "<div id='multilanguage-modal'>
+        <textarea id='multilanguage-translation'></textarea>
+        </div>";
+
+        echo "<script type='text/javascript'>
+        var baseUrl = '" . WEB_ROOT . "';
+        </script>
+        ";
     }
 
     public function hookExhibitsBrowseSql($args)
@@ -54,15 +155,6 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
             $select->where("$alias.lang = ?", $this->locale_code);
         }
     }
-    public function filterGuestUserLinks($links)
-    {
-        $links['Multilanguage'] = array(
-            'label' => __('Preferred Language'),
-            'uri' => url('multilanguage/user-language/user-language'),
-        );
-        return $links;
-    }
-
     public function filterAdminNavigationMain($nav)
     {
         $nav['Multilanguage'] = array(
@@ -76,18 +168,13 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
         return $nav;
     }
 
-    private function getLocaleFromGetOrSession($locale)
+    public function filterGuestUserLinks($links)
     {
-        $session = new Zend_Session_Namespace;
-
-        if (isset($_GET['lang'])) {
-            $locale = html_escape($_GET['lang']);
-            $session->lang = $locale;
-        } elseif (isset($session->lang)) {
-            $locale = $session->lang;
-        }
-
-        return $locale;
+        $links['Multilanguage'] = array(
+            'label' => __('Preferred Language'),
+            'uri' => url('multilanguage/user-language/user-language'),
+        );
+        return $links;
     }
 
     public function filterLocale($locale)
@@ -168,106 +255,6 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
         return $this->locale_code;
     }
 
-    public function hookAdminFooter()
-    {
-        echo "<div id='multilanguage-modal'>
-        <textarea id='multilanguage-translation'></textarea>
-        </div>";
-
-        echo "<script type='text/javascript'>
-        var baseUrl = '" . WEB_ROOT . "';
-        </script>
-        ";
-    }
-
-    public function hookAdminHead()
-    {
-        queue_css_file('multilanguage');
-        queue_js_file('multilanguage');
-    }
-
-    public function hookInstall()
-    {
-        $db = $this->_db;
-        $sql = "
-CREATE TABLE IF NOT EXISTS $db->MultilanguageTranslation (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `element_id` int(11) NOT NULL,
-  `record_id` int(11) NOT NULL,
-  `record_type` tinytext COLLATE utf8_unicode_ci NOT NULL,
-  `locale_code` tinytext COLLATE utf8_unicode_ci NOT NULL,
-  `text` text COLLATE utf8_unicode_ci,
-  `translation` text COLLATE utf8_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `element_id` (`element_id`,`record_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
-                    ";
-
-        $db->query($sql);
-
-        $sql = "
-CREATE TABLE IF NOT EXISTS $db->MultilanguageContentLanguage (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `record_type` tinytext COLLATE utf8_unicode_ci NOT NULL,
-  `record_id` int(10) unsigned NOT NULL,
-  `lang` tinytext COLLATE utf8_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
-        ";
-
-        $db->query($sql);
-
-        $sql = "
-
-CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `user_id` int(10) unsigned NOT NULL,
-  `lang` tinytext COLLATE utf8_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `user_id` (`user_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
-
-        ";
-
-        $db->query($sql);
-    }
-
-    public function hookUninstall()
-    {
-        $db = $this->_db;
-        $sql = "DROP TABLE $db->MultilanguageTranslation ";
-        $db->query($sql);
-
-        $sql = "DROP TABLE $db->MultilanguageContentLanguage ";
-        $db->query($sql);
-
-
-        $sql = "DROP TABLE $db->MultilanguageUserLanguage";
-        $db->query($sql);
-    }
-
-    public function hookConfig($args)
-    {
-        $post = $args['post'];
-        $elements = array();
-        $elTable = get_db()->getTable('Element');
-        foreach ($post['element_sets'] as $elId) {
-            $element = $elTable->find($elId);
-            $elSet = $element->getElementSet();
-            if (!array_key_exists($elSet->name, $elements)) {
-                $elements[$elSet->name] = array();
-            }
-            $elements[$elSet->name][] = $element->name;
-        }
-        set_option('multilanguage_elements', serialize($elements));
-        set_option('multilanguage_language_codes', serialize($post['multilanguage_language_codes']));
-    }
-
-    public function hookConfigForm()
-    {
-        include('config_form.php');
-    }
-
     public function translateField($components, $args)
     {
         $record = $args['record'];
@@ -302,5 +289,19 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
             }
         }
         return $translateText;
+    }
+
+    protected function getLocaleFromGetOrSession($locale)
+    {
+        $session = new Zend_Session_Namespace;
+
+        if (isset($_GET['lang'])) {
+            $locale = html_escape($_GET['lang']);
+            $session->lang = $locale;
+        } elseif (isset($session->lang)) {
+            $locale = $session->lang;
+        }
+
+        return $locale;
     }
 }
