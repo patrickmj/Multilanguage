@@ -278,25 +278,27 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
                 }
             }
         }
+
         //weird to be adding filters here, but translations weren't happening consistently when it was in setUp
         //@TODO: check if this oddity is due to setting the priority high
         $translatableElements = unserialize(get_option('multilanguage_elements'));
         if (is_array($translatableElements)) {
             foreach ($translatableElements as $elementSet=>$elements) {
                 foreach ($elements as $element) {
-                    add_filter(array('Display', 'Item', $elementSet, $element), array($this, 'translate'), 1);
-                    add_filter(array('ElementInput', 'Item', $elementSet, $element), array($this, 'translateField'), 1);
-                    add_filter(array('Display', 'Collection', $elementSet, $element), array($this, 'translate'), 1);
-                    add_filter(array('ElementInput', 'Collection', $elementSet, $element), array($this, 'translateField'), 1);
-                    add_filter(array('Display', 'File', $elementSet, $element), array($this, 'translate'), 1);
-                    add_filter(array('ElementInput', 'File', $elementSet, $element), array($this, 'translateField'), 1);
+                    add_filter(array('Display', 'Item', $elementSet, $element), array($this, 'filterTranslate'), 1);
+                    add_filter(array('ElementInput', 'Item', $elementSet, $element), array($this, 'filterTranslateField'), 1);
+                    add_filter(array('Display', 'Collection', $elementSet, $element), array($this, 'filterTranslate'), 1);
+                    add_filter(array('ElementInput', 'Collection', $elementSet, $element), array($this, 'filterTranslateField'), 1);
+                    add_filter(array('Display', 'File', $elementSet, $element), array($this, 'filterTranslate'), 1);
+                    add_filter(array('ElementInput', 'File', $elementSet, $element), array($this, 'filterTranslateField'), 1);
                 }
             }
         }
+
         return $this->locale_code;
     }
 
-    public function translateField($components, $args)
+    public function filterTranslateField($components, $args)
     {
         $record = $args['record'];
         $element = $args['element'];
@@ -310,7 +312,7 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
         return $components;
     }
 
-    public function translate($translateText, $args)
+    public function filterTranslate($translateText, $args)
     {
         $db = $this->_db;
         $record = $args['record'];
