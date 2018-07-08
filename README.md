@@ -2,7 +2,8 @@ Multilanguage (plugin for Omeka)
 ================================
 
 [Multilanguage] is an [Omeka] plugin that is a limited attempt to make parts of
-Omeka multilanguage.
+Omeka multilanguage. It integrates the [locale switcher] from [BibLibre] for
+public front-end and admin back-end.
 
 
 Installation
@@ -32,6 +33,7 @@ Features
 The plugin should respect browser settings for preferred language.
 Alternatively, it plays well with the Guest User plugin to allow guest users to
 select their preferred language.
+Anyway, the user can always use the flag icons.
 
 ### Record Elements
 
@@ -124,6 +126,8 @@ See online issues on the [plugin issues] page on GitHub.
 License
 -------
 
+### Plugin
+
 This plugin is published under [GNU/GPL v3].
 
 This program is free software; you can redistribute it and/or modify it under
@@ -140,17 +144,25 @@ You should have received a copy of the GNU General Public License along with
 this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+### Libraries
+
+The flag icons are released under the MIT license.
+
 
 Copyright
 ---------
 
 * Copyright 2015-2016 Patrick Murray-John (see [patrickmj] on Github)
+* Copyright 2017 BibLibre (see [BibLibre] on Github)
 * Copyright Daniel Berthereau, 2018 (see [Daniel-KM] on GitHub)
 
 
 [Multilanguage]: https://github.com/patrickmj/multilanguage
 [Omeka]: https://omeka.org
+[locale switcher]: https://github.com/Daniel-KM/Omeka-plugin-LocaleSwitcher
+[flag-icon-css]: http://flag-icon-css.lip.is/
 [plugin issues]: https://github.com/patrickmj/Multilanguage/issues
 [GNU/GPL v3]: https://www.gnu.org/licenses/gpl-3.0.html
 [patrickmj]: https://github.com/patrickmj
+[BibLibre]: https://github.com/BibLibre
 [Daniel-KM]: https://github.com/Daniel-KM "Daniel Berthereau"

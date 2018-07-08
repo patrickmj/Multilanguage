@@ -73,7 +73,7 @@ class Multilanguage_UserLanguageController extends Omeka_Controller_AbstractActi
             $lang = $defaultCode;
         }
 
-        $codes = unserialize(get_option('multilanguage_language_codes')) ?: array();
+        $codes = unserialize(get_option('multilanguage_locales')) ?: array();
         array_unshift($codes, $defaultCode);
         foreach ($codes as $code) {
             $parts = explode('_', $code);
