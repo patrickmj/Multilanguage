@@ -86,6 +86,60 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
         $this->_helper->json($languageCodes);
     }
 
+    public function listRecordsAction()
+    {
+        $this->listRecordIds(array('id', 'slug'));
+    }
+
+    public function listRecordsBySlugAction()
+    {
+        $this->listRecordIds(array('slug', 'id'));
+    }
+
+    protected function listRecordIds($columns)
+    {
+        $recordType = empty($_GET['record_type']) ? null : $_GET['record_type'];
+        $recordTypes = array(
+            'Exhibit',
+            'SimplePagesPage',
+        );
+        $recordType = in_array($recordType, $recordTypes) ? $recordType : null;
+        if (empty($recordType)) {
+            $this->_helper->json(array());
+            return;
+        }
+
+        $db = get_db();
+        $table = $db->getTable($recordType);
+        $alias = $table->getTableAlias();
+        $select = $table->getSelectForFindBy()
+            ->reset(Zend_Db_Select::COLUMNS)
+            ->from(array(), $columns)
+            ->order($alias . '.' . reset($columns));
+        $result = $db->fetchPairs($select);
+        $this->_helper->json($result);
+    }
+
+    public function listRelatedRecordsAction()
+    {
+        $recordType = empty($_GET['record_type']) ? null : $_GET['record_type'];
+        $recordTypes = array(
+            'Exhibit',
+            'SimplePagesPage',
+        );
+        $recordType = in_array($recordType, $recordTypes) ? $recordType : null;
+        $recordId = empty($_GET['record_id']) ? null : (int) $_GET['record_id'];
+        if (empty($recordType) || empty($recordId)) {
+            $this->_helper->json(array());
+            return;
+        }
+
+        $db = get_db();
+        $result  = $db->getTable('MultilanguageRelatedRecord')
+            ->findRelatedRecordIds($recordType, $recordId);
+        $this->_helper->json($result);
+    }
+
     /**
      * Update the locale code of a record.
      *
@@ -123,6 +177,7 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
         if (empty($recordType) || empty($recordId)) {
             return null;
         }
+
         $table = $this->_helper->db->getTable('MultilanguageContentLanguage');
         $select = $table->getSelectForFindBy(
             array(

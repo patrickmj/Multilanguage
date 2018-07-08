@@ -41,3 +41,18 @@ if (get_option('show_element_set_headings')) {
         </div>
     </div>
 </div>
+<?php
+pmd($translatableElementIds);
+pmd($elementOptions);
+//    echo $this->formMultiSelect('element_setes', $translatableElementIds, null, $elementOptions, '');
+
+echo $this->formMultiCheckbox('lc', $multilanguageCodes, null, $codes);
+
+
+$this->formSelect( 'select', 'select', array(
+    'label' => 'select',
+    'value' => 'value',
+    'multiOptions' => array(
+        'First', 'Second', 'third'
+    )
+));
