@@ -123,15 +123,23 @@ jQuery(document).ready(function() {
          * Add a select input to set the language of a record (simple page, exhibit…).
          */
 
-        $('.simple-pages #content form section').filter(':first').each(function(index) {
+        $('.simple-pages #content form section, .exhibits #content form section fieldset').filter(':first').each(function(index) {
             var metadata = $(this);
             var record_type;
             var record_id;
             var insertNthChild;
             var recordExists;
-            record_type = 'SimplePagesPage';
-            insertNthChild = '2';
-            recordExists = metadata.parent('form').find('#save a.delete-confirm');
+            if ($('body').hasClass('simple-pages')) {
+                record_type = 'SimplePagesPage';
+                insertNthChild = '2';
+                recordExists = metadata.parent('form').find('#save a.delete-confirm');
+            } else if ($('body').hasClass('exhibits')) {
+                record_type = 'Exhibit';
+                insertNthChild = '3';
+                recordExists = metadata.parent().parent().find('#save a.delete-confirm');
+            } else {
+                return;
+            }
 
             // TODO How to get the id of the new record? Use slug?
             var record_id = recordExists.attr('href').split('/').pop();

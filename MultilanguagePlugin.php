@@ -17,6 +17,8 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
         'after_save_user',
         // No hook for simple page form.
         'after_save_simple_pages_page',
+        // No hook for exhibit form.
+        'after_save_exhibit',
         'exhibits_browse_sql',
         'simple_pages_pages_browse_sql',
     );
@@ -180,6 +182,11 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
     }
 
     public function hookAfterSaveSimplePagesPage($args)
+    {
+        $this->saveLocaleCodeRecord($args);
+    }
+
+    public function hookAfterSaveExhibit($args)
     {
         $this->saveLocaleCodeRecord($args);
     }
