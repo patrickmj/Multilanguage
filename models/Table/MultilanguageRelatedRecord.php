@@ -7,15 +7,15 @@ class Table_MultilanguageRelatedRecord extends Omeka_Db_Table
      *
      * @param string $recordType
      * @param int $recordId
+     * @param bool $included Include the specified record to the list.
      * @return array List of record ids.
      */
-    public function findRelatedRecords($recordType, $recordId)
+    public function findRelatedRecords($recordType, $recordId, $included = false)
     {
-        $recordIds = $this->findRelatedRecordIds($recordType, $recordId);
+        $recordIds = $this->findRelatedRecordIds($recordType, $recordId, $included);
         if (empty($recordIds)) {
             return array();
         }
-        sort($recordIds);
         $recordIdsString = implode(',', $recordIds);
         $select = $this->getSelect()
             ->where($this->getTableAlias() . ".record_id IN ($recordIdsString)")
@@ -28,9 +28,10 @@ class Table_MultilanguageRelatedRecord extends Omeka_Db_Table
      *
      * @param string $recordType
      * @param int $recordId
+     * @param bool $included Include the specified record to the list.
      * @return array List of record ids.
      */
-    public function findRelatedRecordIds($recordType, $recordId)
+    public function findRelatedRecordIds($recordType, $recordId, $included = false)
     {
         $recordId = (int) $recordId;
 
@@ -89,13 +90,15 @@ ORDER BY related_record_id;
         $result = $db->fetchCol($sql, array($recordType));
 
         $result = array_unique(array_merge($recordIds, $result));
-        sort($result);
 
-        $recordIdKey = array_search($recordId, $result);
-        if ($recordIdKey !== false) {
-            unset($result[$recordIdKey]);
+        if (!$included) {
+            $recordIdKey = array_search($recordId, $result);
+            if ($recordIdKey !== false) {
+                unset($result[$recordIdKey]);
+            }
         }
 
-        return array_values($result);
+        sort($result);
+        return $result;
     }
 }

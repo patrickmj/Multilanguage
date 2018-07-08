@@ -602,14 +602,15 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
 
         // To avoid multiple checks, all related records are removed and saved.
         // Anyway, they are a few usually.
-        $relatedRecords = $this->relatedRecords($record);
+        $relatedRecords = $this->relatedRecords($record, null, true);
         foreach ($relatedRecords as $relatedRecord) {
             $relatedRecord->delete();
         }
 
         // All related records or new related records should be removed too.
+        // TODO Just remove the related record from the list of its related records.
         foreach ($relatedRecordIds as $relatedRecordId) {
-            $relatedRecords = $this->relatedRecords($recordType, $relatedRecordId);
+            $relatedRecords = $this->relatedRecords($recordType, $relatedRecordId, true);
             foreach ($relatedRecords as $relatedRecord) {
                 $relatedRecord->delete();
             }
@@ -641,7 +642,7 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
         if ($localeCodeRecord) {
             $localeCodeRecord->delete();
         }
-        $relatedRecords = $this->relatedRecords($record);
+        $relatedRecords = $this->relatedRecords($record, null, true);
         foreach ($relatedRecords as $relatedRecord) {
             $relatedRecord->delete();
         }
@@ -671,9 +672,10 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
      *
      * @param Omeka_Record_AbstractRecord|string $record Record or record type.
      * @param int $recordId
+     * @param bool $included Include the specified record to the list.
      * @return MultilanguageRelatedRecord[]|null
      */
-    protected function relatedRecords($record, $recordId = null)
+    protected function relatedRecords($record, $recordId = null, $included = false)
     {
         if (is_object($record)) {
             $recordType = get_class($record);
@@ -683,7 +685,7 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
         }
 
         $records = get_db()->getTable('MultilanguageRelatedRecord')
-            ->findRelatedRecords($recordType, $recordId);
+            ->findRelatedRecords($recordType, $recordId, $included);
         return $records;
     }
 }
