@@ -32,6 +32,11 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
         // Note: the filter locale adds some filters.
     );
 
+    protected $_options = array(
+        'multilanguage_elements' => 'a:1:{s:11:"Dublin Core";a:3:{i:0;s:5:"Title";i:1;s:11:"Description";i:2;s:7:"Subject";}}',
+        'multilanguage_language_codes' => 'a:1:{i:0;s:5:"en_US";}',
+    );
+
     protected $_translationTable = null;
 
     protected $locale_code;
@@ -73,7 +78,6 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageContentLanguage (
         $db->query($sql);
 
         $sql = "
-
 CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int(10) unsigned NOT NULL,
@@ -86,6 +90,8 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
         ";
 
         $db->query($sql);
+
+        $this->_installOptions();
     }
 
     public function hookUninstall()
@@ -100,6 +106,8 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
 
         $sql = "DROP TABLE $db->MultilanguageUserLanguage";
         $db->query($sql);
+
+        $this->_uninstallOptions();
     }
 
     public function hookUpgrade($args)
@@ -130,7 +138,37 @@ ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
 
     public function hookConfigForm()
     {
-        include('config_form.php');
+        $view = get_view();
+
+        $multilanguageCodes = get_option('multilanguage_language_codes');
+        $multilanguageCodes = $multilanguageCodes ? unserialize($multilanguageCodes) : array();
+
+        $files = scandir(BASE_DIR . '/application/languages');
+        foreach ($files as $file) {
+            if (strpos($file, '.mo') !== false) {
+                $code = str_replace('.mo', '', $file);
+                $codes[$code] = locale_human($code) . " ($code)";
+            }
+        }
+        $codes['en_US'] = ucfirst(Zend_Locale::getTranslation('en_US', 'language')) . ' (en_US)';
+        asort($codes);
+
+        $translatableElements = get_option('multilanguage_elements');
+        $translatableElements = $translatableElements ? unserialize($translatableElements) : array();
+        $elTable = get_db()->getTable('Element');
+        $translatableElementIds = array();
+        foreach ($translatableElements as $elSet => $elements) {
+            foreach ($elements as $element) {
+                $elObject = $elTable->findByElementSetNameAndElementName($elSet, $element);
+                $translatableElementIds[] = $elObject->id;
+            }
+        }
+
+        echo $view->partial('plugins/multilanguage-config-form.php', array(
+            'multilanguageCodes' => $multilanguageCodes,
+            'codes' => $codes,
+            'translatableElementIds' => $translatableElementIds,
+        ));
     }
 
     public function hookConfig($args)
