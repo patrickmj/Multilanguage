@@ -1,43 +1,11 @@
 <?php
+// Mainly used for the plugin Guest user.
 echo head(array('title' => __('Preferred Language')));
-
-$codes = unserialize(get_option('multilanguage_language_codes'));
-$availableCodes = array();
-$defaultCodes = Zend_Locale::getDefault();
-$defaultCode = current(array_keys($defaultCodes));
-
-if (!isset($lang)) {
-    $lang = $defaultCode;
-}
-
-if (plugin_is_active('Locale')) {
-    $plugin = new LocalePlugin();
-    $defaultCode = $plugin->filterLocale(null);
-}
-
-array_unshift($codes, $defaultCode);
-foreach ($codes as $code) {
-    $parts = explode('_', $code);
-    if (isset($parts[1])) {
-        $langCode = $parts[0];
-        $regionCode = $parts[1];
-        $language = Zend_Locale::getTranslation($langCode, 'language', $langCode);
-        $region = Zend_Locale::getTranslation($regionCode, 'territory', $langCode);
-    } else {
-        $region = '';
-        $language = Zend_Locale::getTranslation($code, 'language', $code);
-    }
-    if ($region != '') {
-        $region = " - $region";
-    }
-    $availableCodes[$code] = ucfirst($language) . $region . " ($code)";
-}
-
 ?>
 <form method='POST'>
     <div class="field">
         <div class="two columns alpha">
-            <label><?php echo __('Select your prefered language'); ?></label>
+            <label><?php echo __('Select your preferred language'); ?></label>
         </div>
         <div class="inputs five columns omega">
         <p class="explanation"><?php echo __('The default language is %s', $availableCodes[$defaultCode]); ?> </p>
@@ -49,7 +17,7 @@ foreach ($codes as $code) {
 
 <section class="three columns omega">
     <div class="panel" id="save">
-        <input type="submit" class="submit big green button" value="Save Changes" id="save-changes" name="submit">
+        <input type="submit" class="submit big green button" value="<?php echo __('Save Changes'); ?>" id="save-changes" name="submit">
     </div>
 </section>
 

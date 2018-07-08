@@ -2,13 +2,16 @@
 class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
 {
     protected $_hooks = array(
+        'initialize',
         'install',
         'uninstall',
         'config',
         'config_form',
         'admin_head',
         'admin_footer',
-        'initialize',
+        // 'admin_users_browse_each',
+        'users_form',
+        'after_save_user',
         'exhibits_browse_sql',
         'simple_pages_pages_browse_sql',
     );
@@ -129,6 +132,48 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
         ";
     }
 
+    public function hookUsersForm($args)
+    {
+        $form = $args['form'];
+        $user = $args['user'];
+
+        $defaultCode = $this->getDefaultLocaleCode();
+        $userLang = ($user && $user->id) ? $this->getUserLang($user, $defaultCode) : $defaultCode;
+        $availableCodes = $this->prepareLocaleCodes($userLang);
+
+        $form->addElement('select', 'multilanguage_language_code', array(
+            'label' => __('Preferred language'),
+            'description' => __('Default language is %s.', $availableCodes[$defaultCode]),
+            'multiOptions' => $availableCodes,
+            'value' => $userLang,
+            'required' => false,
+        ));
+    }
+
+    public function hookAfterSaveUser($args)
+    {
+        $post = $args['post'];
+        $user = $args['record'];
+        if (isset($post['multilanguage_language_code'])) {
+            $prefLanguages = get_db()->getTable('MultilanguageUserLanguage')
+                ->findBy(array('user_id' => $user->id));
+            if (empty($prefLanguages)) {
+                $prefLanguage = new MultilanguageUserLanguage;
+                $prefLanguage->user_id = $user->id;
+            } else {
+                $prefLanguage = $prefLanguages[0];
+            }
+
+            $defaultCode = $this->getDefaultLocaleCode();
+            $availableCodes = $this->prepareLocaleCodes();
+            $userLang = $post['multilanguage_language_code'];
+            $prefLanguage->lang = isset($availableCodes[$userLang])
+                ? $userLang
+                : $defaultCode;
+            $prefLanguage->save();
+        }
+    }
+
     public function hookExhibitsBrowseSql($args)
     {
         $this->modelBrowseSql($args, 'Exhibit');
@@ -139,7 +184,7 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
         $this->modelBrowseSql($args, 'SimplePagesPage');
     }
 
-    public function modelBrowseSql($args, $model)
+    protected function modelBrowseSql($args, $model)
     {
         if (!is_admin_theme()) {
             $select = $args['select'];
@@ -157,10 +202,6 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
     }
     public function filterAdminNavigationMain($nav)
     {
-        $nav['Multilanguage'] = array(
-            'label' => __('Preferred Language'),
-            'uri' => url('multilanguage/user-language/user-language'),
-        );
         $nav['Multilanguage_content'] = array(
             'label' => __('Multilanguage Content'),
             'uri' => url('multilanguage/translations/content-language'),
@@ -303,5 +344,70 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
         }
 
         return $locale;
+    }
+
+    protected function getDefaultLocaleCode()
+    {
+        if (plugin_is_active('Locale')) {
+            $plugin = new LocalePlugin();
+            return $plugin->filterLocale(null);
+        }
+
+        $defaultCodes = Zend_Locale::getDefault();
+        return current(array_keys($defaultCodes));
+    }
+
+    protected function getUserLang($user, $defaultCode = null)
+    {
+        $prefLanguages = get_db()->getTable('MultilanguageUserLanguage')
+            ->findBy(array('user_id' => $user->id));
+        $userLang = empty($prefLanguages) ? $defaultCode : $prefLanguages[0]->lang;
+        return $userLang;
+    }
+
+    /**
+     * Get the list of available language code.
+     *
+     * @param string $lang Add this language code.
+     * @return array
+     */
+    protected function prepareLocaleCodes($lang = null)
+    {
+        $availableCodes = array();
+        $defaultCode = $this->getDefaultLocaleCode();
+
+        if (!isset($lang)) {
+            $lang = $defaultCode;
+        }
+
+        $codes = unserialize(get_option('multilanguage_language_codes')) ?: array();
+        array_unshift($codes, $defaultCode);
+        foreach ($codes as $code) {
+            $parts = explode('_', $code);
+            if (isset($parts[1])) {
+                $langCode = $parts[0];
+                $regionCode = $parts[1];
+                try {
+                    $language = Zend_Locale::getTranslation($langCode, 'language', $langCode);
+                    $region = Zend_Locale::getTranslation($regionCode, 'territory', $langCode);
+                } catch (Exception $e) {
+                    $language = $langCode;
+                    $region = '';
+                }
+            } else {
+                try {
+                    $language = Zend_Locale::getTranslation($code, 'language', $code);
+                } catch (Exception $e) {
+                    $language = $code;
+                }
+                $region = '';
+            }
+            if ($region != '') {
+                $region = " - $region";
+            }
+            $availableCodes[$code] = ucfirst($language) . $region . " ($code)";
+        }
+
+        return $availableCodes;
     }
 }
