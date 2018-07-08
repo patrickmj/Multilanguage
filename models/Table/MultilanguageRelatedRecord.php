@@ -45,6 +45,32 @@ class Table_MultilanguageRelatedRecord extends Omeka_Db_Table
     }
 
     /**
+     * Get the related source record (simple page, exhibit…) for a locale.
+     *
+     * The cuy
+     *
+     * @param string $recordType
+     * @param int $recordId
+     * @param string $locale
+     * @return Omeka_Record_AbstractRecord
+     */
+    public function findRelatedSourceRecordForLocale($recordType, $recordId, $locale)
+    {
+        if (empty($locale)) {
+            return;
+        }
+        $recordIds = $this->findRelatedSourceRecordIdsWithLocale($recordType, $recordId, true);
+        if (empty($recordIds)) {
+            return;
+        }
+        $relatedRecordId = array_search($locale, $recordIds);
+        if ($relatedRecordId === false) {
+            return;
+        }
+        return $this->_db->getTable($recordType)->find($relatedRecordId);
+    }
+
+    /**
      * Get all source record slugs and ids related to a record (simple page,
      * exhibit…).
      *
@@ -67,6 +93,35 @@ class Table_MultilanguageRelatedRecord extends Omeka_Db_Table
             ->from(array(), $columns)
             ->where('id IN (' . $recordIdsString . ')')
             ->order(reset($columns));
+        return $this->fetchPairs($select);
+    }
+
+    /**
+     * Get all records with locale related to a record (simple page, exhibit…).
+     *
+     * @param string $recordType
+     * @param int $recordId
+     * @param bool $included Include the specified record to the list.
+     * @return array Associative array of record ids and locale, if any.
+     */
+    public function findRelatedSourceRecordIdsWithLocale($recordType, $recordId, $included = false)
+    {
+        // Note: The process cannot be done with a simple left joint, since it
+        // should be based on record_id or related_id.
+
+        $recordIds = $this->findRelatedRecordIds($recordType, $recordId, $included);
+        if (empty($recordIds)) {
+            return array();
+        }
+        $recordIdsString = implode(',', $recordIds);
+        $columns = array('record_id', 'lang');
+        $select = $this->_db->getTable('MultilanguageContentLanguage')
+            ->getSelect()
+            ->reset(Zend_Db_Select::COLUMNS)
+            ->from(array(), $columns)
+            ->where('record_type = ?', $recordType)
+            ->where('record_id IN (' . $recordIdsString . ')')
+            ->order('lang');
         return $this->fetchPairs($select);
     }
 
