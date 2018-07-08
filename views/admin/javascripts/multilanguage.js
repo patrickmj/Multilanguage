@@ -69,7 +69,7 @@ jQuery(document).ready(function() {
     $(function() {
 
         /**
-         * Display the language of each simple page.
+         * Display the language of each record (simple page, exhibit…).
          */
 
         // It's quicker to get all codes in one query, since there are a few.
@@ -96,6 +96,21 @@ jQuery(document).ready(function() {
                 function(localeCodes) {
                     list.find('li p a:first-child').each(function(index) {
                         var record_id = $(this).parent('p').find('a.edit').attr('href').split('/').pop();
+                        $(this).after(
+                            $(' <span class="locale-code"></span>').text('[' + localeCodes[record_id] + ']')
+                        );
+                    });
+                }
+            );
+        });
+        $('.exhibits #content tbody').filter(':first').each(function(index) {
+            var data = {'record_type' : 'Exhibit'};
+            var list = $(this);
+            $.get(baseUrl + '/admin/multilanguage/translations/list-locale-codes-record',
+                data,
+                function(localeCodes) {
+                    list.find('.exhibit .exhibit-info span').each(function(index) {
+                        var record_id = $(this).parent('.exhibit-info').find('.action-links li a.edit').attr('href').split('/').pop();
                         $(this).after(
                             $(' <span class="locale-code"></span>').text('[' + localeCodes[record_id] + ']')
                         );
