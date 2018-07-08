@@ -286,7 +286,7 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
             foreach ($translatableElements as $elementSet=>$elements) {
                 foreach ($elements as $element) {
                     add_filter(array('Display', 'Item', $elementSet, $element), array($this, 'filterTranslate'), 1);
-                    add_filter(array('ElementInput', 'Item', $elementSet, $element), array($this, 'filterTranslateField'), 1);
+                    add_filter(array('ElementInput', 'Item', $elementSet, $element), array($this, 'filtertranslateField'), 1);
                     add_filter(array('Display', 'Collection', $elementSet, $element), array($this, 'filterTranslate'), 1);
                     add_filter(array('ElementInput', 'Collection', $elementSet, $element), array($this, 'filterTranslateField'), 1);
                     add_filter(array('Display', 'File', $elementSet, $element), array($this, 'filterTranslate'), 1);
@@ -304,11 +304,12 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
         $element = $args['element'];
         $type = get_class($record);
         $languages = unserialize(get_option('multilanguage_language_codes'));
-        $html = __('Translate to: ');
+        $html = __('Translate to:');
         foreach ($languages as $code) {
-            $html .= " <li data-element-id='{$element->id}' data-code='$code' data-record-id='{$record->id}' data-record-type='{$type}' class='multilanguage-code'>$code</li>";
+            $html .= sprintf(' <li data-element-id="%s" data-code="%s" data-record-id="%s" data-record-type="%s" class="multilanguage-code">%s</li>',
+                $element->id, $code, $record->id, $type, $code);
         }
-        $components['form_controls'] .= "<ul class='multilanguage' >$html</ul>";
+        $components['form_controls'] .= '<ul class="multilanguage">' . $html . '</ul>';
         return $components;
     }
 

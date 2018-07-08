@@ -4,30 +4,40 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
     public function translateAction()
     {
         $db = get_db();
-        if ($this->getRequest()->isPost()) {
-            if (isset($_POST['translation_id'])) {
-                $translation = $db->getTable('MultilanguageTranslation')
-                    ->find($_POST['translation_id']);
-            } else {
-                $translation = new MultilanguageTranslation;
-            }
-
-            $translation->element_id = $_POST['element_id'];
-            $translation->record_id = $_POST['record_id'];
-            $translation->record_type = $_POST['record_type'];
-            $translation->text = $_POST['text'];
-            $translation->translation = $_POST['translation'];
-            $translation->locale_code = $_POST['locale_code'];
-            $translation->save();
-            $this->_helper->json('');
+        $request = $this->getRequest();
+        if (!$request->isPost()) {
+            $this->_helper->json(false);
+            return;
         }
+
+        $post = $request->getParams();
+        if (empty($post['record_id'])) {
+            $this->_helper->json(false);
+            return;
+        }
+
+        if (isset($post['translation_id'])) {
+            $translation = $db->getTable('MultilanguageTranslation')
+                ->find( ['translation_id']);
+        } else {
+            $translation = new MultilanguageTranslation;
+        }
+
+        $translation->element_id = $post['element_id'];
+        $translation->record_id = $post['record_id'];
+        $translation->record_type = $post['record_type'];
+        $translation->text = $post['text'];
+        $translation->translation = $post['translation'];
+        $translation->locale_code = $post['locale_code'];
+        $translation->save();
+        $this->_helper->json(true);
     }
 
     public function translationAction()
     {
         $db = get_db();
 
-        if (isset($_GET['text'])) {
+        if (isset($_GET['text']) && isset($_GET['record_id'])) {
             $translation = $db->getTable('MultilanguageTranslation')
                 ->getTranslation(
                     $_GET['record_id'],

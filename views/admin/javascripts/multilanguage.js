@@ -3,6 +3,12 @@ jQuery(document).ready(function() {
     jQuery('#edit-form').on('click', '.multilanguage-code', function() {
         var dialog, data;
         var target = jQuery(this);
+
+        if (!target.data('record-id')) {
+            alert('To translate the value of a record, this record must be already saved itself.');
+            return;
+        }
+
         var text = target.parents('.input-block').find('textarea').val();
         dialog = jQuery('#multilanguage-modal').dialog({
             autoOpen: true,
