@@ -95,17 +95,43 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
         $this->_helper->json($languageCodes);
     }
 
+    /**
+     * Update the locale code of a record.
+     *
+     * @param string $recordType
+     * @param int $recordId
+     * @param string $lang
+     */
     protected function updateContentLang($recordType, $recordId, $lang)
     {
         $contentLanguage = $this->fetchContentLanguageRecord($recordType, $recordId);
+        if (empty($contentLanguage)) {
+            return;
+        }
         $contentLanguage->record_type = $recordType;
         $contentLanguage->record_id = $recordId;
         $contentLanguage->lang = $lang;
         $contentLanguage->save();
     }
 
+    /**
+     * Get the matching content language for a record.
+     *
+     * @param string $recordType
+     * @param int $recordId
+     * @return MultilanguageContentLanguage|null
+     */
     protected function fetchContentLanguageRecord($recordType, $recordId)
     {
+        $recordTypes = array(
+            'Exhibit',
+            'SimplePagesPage',
+        );
+        $recordType = in_array($recordType, $recordTypes) ? $recordType : null;
+        $recordId = (int) $recordId;
+        if (empty($recordType) || empty($recordId)) {
+            return null;
+        }
         $table = $this->_helper->db->getTable('MultilanguageContentLanguage');
         $select = $table->getSelectForFindBy(
             array(
