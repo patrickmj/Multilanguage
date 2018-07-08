@@ -128,29 +128,31 @@ jQuery(document).ready(function() {
             var record_type;
             var record_id;
             var insertNthChild;
+            var form;
             var recordExists;
             if ($('body').hasClass('simple-pages')) {
                 record_type = 'SimplePagesPage';
                 insertNthChild = '2';
-                recordExists = metadata.parent('form').find('#save a.delete-confirm');
+                form = metadata.parent('form');
             } else if ($('body').hasClass('exhibits')) {
                 record_type = 'Exhibit';
                 insertNthChild = '3';
-                recordExists = metadata.parent().parent().find('#save a.delete-confirm');
+                form = metadata.parent().parent();
             } else {
                 return;
             }
+            recordExists = form.find('#save a.delete-confirm');
 
             // TODO How to get the id of the new record? Use slug?
-            var record_id = recordExists.attr('href').split('/').pop();
+            var record_id = recordExists.length ? recordExists.attr('href').split('/').pop() : null;
 
-            if (!recordExists.length) {
+            if (!record_id) {
                 var html = '<div class="field">'
                     + '<div id="locale_code-label" class="two columns alpha">'
                     + '<label for="locale_code" class="optional">Locale</label>'
                     + '</div>'
                     + '<div class="inputs five columns omega">'
-                    + '<p class="explanation">The locale can be set only after a first save of this record.</p>'
+                    + '<p class="explanation">The locale and the related records can be set only after a first save of this record.</p>'
                     + '<select name="locale_code" id="locale_code" disabled="disabled">'
                     + '<option value="" selected="selected">Select below…</option>'
                     + '</select>'
@@ -163,35 +165,91 @@ jQuery(document).ready(function() {
             $.get(baseUrl + '/admin/multilanguage/translations/list-locale-codes',
                 null,
                 function(availableCodes) {
-                    if (!availableCodes) {
-                        return;
-                    }
-
-                    $.get(baseUrl + '/admin/multilanguage/translations/locale-code-record',
+                    $.get(baseUrl + '/admin/multilanguage/translations/list-related-records',
                         {record_type: record_type, record_id: record_id},
-                        function(localeCode) {
-                            var html = '<div class="field">'
-                                + '<div id="locale_code-label" class="two columns alpha">'
-                                + '<label for="locale_code" class="optional">Locale</label>'
-                                + '</div>'
-                                + '<div class="inputs five columns omega">'
-                                + '<p class="explanation">The locale of this record.</p>'
-                                + '<select name="locale_code" id="locale_code">'
-                                + '<option value="" selected="selected">Select below…</option>'
-                                + '</select>'
-                                + '</div>'
-                                + '</div>';
-                            metadata.find('.field:nth-child(' + insertNthChild + ')').after(html);
-                            $.each(availableCodes, function(value, text) {
-                                $('#locale_code').append(
-                                    $('<option></option>').val(value).html(text)
-                                );
+                        function(relatedRecords) {
+                            $.get(baseUrl + '/admin/multilanguage/translations/list-records-by-slug',
+                                {record_type: record_type},
+                                function(records) {
+                                    $.get(baseUrl + '/admin/multilanguage/translations/locale-code-record',
+                                        {record_type: record_type, record_id: record_id},
+                                        function(localeCode) {
+                                            // Input fields for the current record.
+                                            var html = '<div class="field">'
+                                                + '<div id="locale_code-label" class="two columns alpha">'
+                                                + '<label for="locale_code" class="optional">Locale</label>'
+                                                + '</div>'
+                                                + '<div class="inputs five columns omega">'
+                                                + '<p class="explanation">The locale of this record.</p>'
+                                                + '<select name="locale_code" id="locale_code">'
+                                                + '<option value="" selected="selected">Select below…</option>'
+                                                + '</select>'
+                                                + '</div>'
+                                                + '</div>';
+                                            html += '<div class="field">'
+                                                + '<div id="related_records-label" class="two columns alpha">'
+                                                + '<label for="related_records[]" class="optional">Translations</label>'
+                                                + '</div>'
+                                                + '<div class="inputs five columns omega">'
+                                                + '<p class="explanation">The records that are a translation of the current record.</p>'
+                                                + '<select name="related_records[]" id="related_records" multiple="multiple">'
+                                                + '</select>'
+                                                + '</div>'
+                                                + '</div>';
+                                            metadata.find('.field:nth-child(' + insertNthChild + ')').after(html);
+                                            $.each(availableCodes, function(value, text) {
+                                                $('#locale_code').append(
+                                                    $('<option></option>').val(value).html(text)
+                                                );
+                                            });
+                                            $('#locale_code').val(localeCode);
+                                            // Columns are inverted to avoid order issue with array.
+                                            $.each(records, function(text, value) {
+                                                if (value != record_id) {
+                                                    $('#related_records').append(
+                                                        $('<option></option>').val(value).html(text)
+                                                    );
+                                                }
+                                            });
+                                            var relatedRecordIds = Object.values(relatedRecords);
+                                            $('#related_records').val(relatedRecordIds);
+
+                                            // Links to the related records.
+                                            html = '<div class="field">'
+                                                + '<div>'
+                                                + '<label>Translations</label>'
+                                                + '</div>'
+                                                + '<div class="inputs">'
+                                                + '<ul id="related_record_links"></ul>'
+                                                + '</div>'
+                                                + '</div>';
+                                            form.find('#save').append(html);
+                                            if (relatedRecordIds.length) {
+                                                $.each(relatedRecords, function(text, value) {
+                                                    if (value != record_id) {
+                                                        if (record_type == 'SimplePagesPage') {
+                                                            $('#related_record_links').append(
+                                                                $('<li></li>').html('<a href="' + baseUrl + '/admin/simple-pages/index/edit/id/' + value + '">' + text + '</a>')
+                                                            );
+                                                        } else if (record_type == 'Exhibit') {
+                                                            $('#related_record_links').append(
+                                                                $('<li></li>').html('<a href="' + baseUrl + '/admin/exhibits/edit/' + value + '">' + text + '</a>')
+                                                            );
+                                                        }
+                                                    }
+                                                });
+                                            } else  {
+                                                $('#related_record_links').append(
+                                                    $('<li>No translation</li>')
+                                                );
+                                            }
+
+                                            // Reset the warning for the full form.
+                                            Omeka.warnIfUnsaved();
+                                    });
                             });
-                            $('#locale_code').val(localeCode);
-                        }
-                    );
-                }
-            );
+                    });
+            });
         });
 
     });

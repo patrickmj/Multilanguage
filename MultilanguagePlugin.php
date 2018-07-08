@@ -83,6 +83,20 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageContentLanguage (
         $db->query($sql);
 
         $sql = "
+CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `record_type` tinytext COLLATE utf8_unicode_ci NOT NULL,
+  `record_id` int(10) unsigned NOT NULL,
+  `related_id` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `record_type_record_id` (`record_type`(190),`record_id`),
+  KEY `record_type_related_id` (`record_type`(190),`related_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
+        ";
+
+        $db->query($sql);
+
+        $sql = "
 CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int(10) unsigned NOT NULL,
@@ -91,7 +105,6 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
   UNIQUE KEY `user_id` (`user_id`),
   CONSTRAINT `user_id` FOREIGN KEY (`user_id`) REFERENCES `$db->User` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
-
         ";
 
         $db->query($sql);
@@ -108,6 +121,8 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
         $sql = "DROP TABLE $db->MultilanguageContentLanguage ";
         $db->query($sql);
 
+        $sql = "DROP TABLE $db->MultilanguageRelatedRecord";
+        $db->query($sql);
 
         $sql = "DROP TABLE $db->MultilanguageUserLanguage";
         $db->query($sql);
@@ -145,6 +160,25 @@ ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
             set_option('multilanguage_locales', get_option('multilanguage_language_codes'));
             set_option('multilanguage_locales_admin', get_option('multilanguage_language_codes'));
             delete_option('multilanguage_language_codes');
+        }
+
+        if (version_compare($oldVersion, '1.3', '<')) {
+            $db = $this->_db;
+
+            $sql = "
+CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `record_type` tinytext COLLATE utf8_unicode_ci NOT NULL,
+  `record_id` int(10) unsigned NOT NULL,
+  `related_id` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `record_type_record_id` (`record_type`(190),`record_id`),
+  KEY `record_type_related_id` (`record_type`(190),`related_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
+            ";
+            $db->query($sql);
+
+            // TODO Remove deleted records from MultilanguageContentLanguage.
         }
     }
 
@@ -313,22 +347,22 @@ ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
 
     public function hookAfterSaveSimplePagesPage($args)
     {
-        $this->saveLocaleCodeRecord($args);
+        $this->saveMultilangueRecord($args);
     }
 
     public function hookAfterSaveExhibit($args)
     {
-        $this->saveLocaleCodeRecord($args);
+        $this->saveMultilangueRecord($args);
     }
 
     public function hookAfterDeleteSimplePagesPage($args)
     {
-        $this->deleteLocaleCodeRecord($args);
+        $this->deleteMultilangueRecord($args);
     }
 
     public function hookAfterDeleteExhibit($args)
     {
-        $this->deleteLocaleCodeRecord($args);
+        $this->deleteMultilangueRecord($args);
     }
 
     public function hookExhibitsBrowseSql($args)
@@ -623,55 +657,117 @@ ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
         return $availableCodes;
     }
 
-    protected function saveLocaleCodeRecord($args)
+    protected function saveMultilangueRecord($args)
     {
         $post = $args['post'];
         $record = $args['record'];
+
         if (array_key_exists('locale_code', $post)) {
-            $localeCode = $post['locale_code'];
+            $this->processLocaleCodeRecord($record, $post);
+        }
 
-            // Remove the locale code of the record if wanted and if any.
-            if (empty($localeCode)) {
-                if ($post['insert']) {
-                    return;
-                }
-                $localeCodeRecord = $this->localeCodeRecord($record);
-                if ($localeCodeRecord) {
-                    $localeCodeRecord->delete();
-                    return;
-                }
-            }
-
-            // Check the locale code.
-            $availableCodes = $this->prepareLocaleCodes();
-            if (!isset($availableCodes[$localeCode])) {
-                return;
-            }
-
-            $localeCodeRecord = $this->localeCodeRecord($record);
-
-            // Don't update the locale code if unchanged.
-            if ($localeCodeRecord && $localeCodeRecord->lang === $localeCode) {
-                return;
-            }
-
-            if (empty($localeCodeRecord)) {
-                $localeCodeRecord = new MultilanguageContentLanguage;
-                $localeCodeRecord->record_type = get_class($record);
-                $localeCodeRecord->record_id = (int) $record->id;
-            }
-
-            $localeCodeRecord->lang = $localeCode;
-            $localeCodeRecord->save();
+        if (array_key_exists('related_records', $post)) {
+            $this->processRelatedRecordsRecord($record, $post);
         }
     }
 
-    protected function deleteLocaleCodeRecord($args)
+    protected function processLocaleCodeRecord($record, $post)
+    {
+        $localeCode = $post['locale_code'];
+
+        // Remove the locale code of the record if wanted and if any.
+        if (empty($localeCode)) {
+            if ($post['insert']) {
+                return;
+            }
+            $localeCodeRecord = $this->localeCodeRecord($record);
+            if ($localeCodeRecord) {
+                $localeCodeRecord->delete();
+                return;
+            }
+        }
+
+        // Check the locale code.
+        $availableCodes = $this->prepareLocaleCodes();
+        if (!isset($availableCodes[$localeCode])) {
+            return;
+        }
+
+        $localeCodeRecord = $this->localeCodeRecord($record);
+
+        // Don't update the locale code if unchanged.
+        if ($localeCodeRecord && $localeCodeRecord->lang === $localeCode) {
+            return;
+        }
+
+        if (empty($localeCodeRecord)) {
+            $localeCodeRecord = new MultilanguageContentLanguage;
+            $localeCodeRecord->record_type = get_class($record);
+            $localeCodeRecord->record_id = (int) $record->id;
+        }
+
+        $localeCodeRecord->lang = $localeCode;
+        $localeCodeRecord->save();
+    }
+
+    protected function processRelatedRecordsRecord($record, $post)
+    {
+        $relatedRecordIds = array_filter(array_map('intval', $post['related_records']));
+        sort($relatedRecordIds);
+
+        // No relation can be set for a new record.
+        if ($post['insert']) {
+            return;
+        }
+
+        $recordType = get_class($record);
+        $recordId = (int) $record->id;
+
+        // To avoid multiple checks, all related records are removed and saved.
+        // Anyway, they are a few usually.
+        $relatedRecords = $this->relatedRecords($record, null, true);
+        foreach ($relatedRecords as $relatedRecord) {
+            $relatedRecord->delete();
+        }
+
+        // All related records or new related records should be removed too.
+        // TODO Just remove the related record from the list of its related records.
+        foreach ($relatedRecordIds as $relatedRecordId) {
+            $relatedRecords = $this->relatedRecords($recordType, $relatedRecordId, true);
+            foreach ($relatedRecords as $relatedRecord) {
+                $relatedRecord->delete();
+            }
+        }
+
+        // Create remaining (new) related records.
+        foreach ($relatedRecordIds as $relatedRecordId) {
+            if ($relatedRecordId == $recordId) {
+                continue;
+            }
+            $relatedRecord = new MultilanguageRelatedRecord;
+            $relatedRecord->record_type = $recordType;
+            // Keep record id lower than related id to simplify search.
+            if ($recordId < $relatedRecordId) {
+                $relatedRecord->record_id = $recordId;
+                $relatedRecord->related_id = $relatedRecordId;
+            } else {
+                $relatedRecord->record_id = $relatedRecordId;
+                $relatedRecord->related_id = $recordId;
+            }
+            $relatedRecord->save();
+        }
+    }
+
+    protected function deleteMultilangueRecord($args)
     {
         $record = $args['record'];
         $localeCodeRecord = $this->localeCodeRecord($record);
         if ($localeCodeRecord) {
             $localeCodeRecord->delete();
+        }
+        $relatedRecords = $this->relatedRecords($record, null, true);
+        foreach ($relatedRecords as $relatedRecord) {
+            $relatedRecord->delete();
         }
     }
 
@@ -692,5 +788,27 @@ ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
         );
         $contentLanguage = $table->fetchObject($select);
         return $contentLanguage;
+    }
+
+    /**
+     * Get the related records of a record, if any.
+     *
+     * @param Omeka_Record_AbstractRecord|string $record Record or record type.
+     * @param int $recordId
+     * @param bool $included Include the specified record to the list.
+     * @return MultilanguageRelatedRecord[]|null
+     */
+    protected function relatedRecords($record, $recordId = null, $included = false)
+    {
+        if (is_object($record)) {
+            $recordType = get_class($record);
+            $recordId = $record->id;
+        } else {
+            $recordType = $record;
+        }
+
+        $records = get_db()->getTable('MultilanguageRelatedRecord')
+            ->findRelatedRecords($recordType, $recordId, $included);
+        return $records;
     }
 }
