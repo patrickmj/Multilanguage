@@ -5,12 +5,12 @@ echo head(array('title' => __('Preferred Language')));
 <form method='POST'>
     <div class="field">
         <div class="two columns alpha">
-            <label><?php echo __('Select your preferred language'); ?></label>
+            <?php echo get_view()->formLabel('multilanguage_locale_code', __('Select your preferred language')); ?>
         </div>
         <div class="inputs five columns omega">
-        <p class="explanation"><?php echo __('The default language is %s', $availableCodes[$defaultCode]); ?> </p>
+            <p class="explanation"><?php echo __('The default language is %s', $availableCodes[$defaultCode]); ?> </p>
             <div class="input-block">
-                <?php echo get_view()->formSelect('multilanguage_language_code', $lang, null, $availableCodes); ?>
+                <?php echo get_view()->formSelect('multilanguage_locale_code', $lang, null, $availableCodes); ?>
             </div>
         </div>
     </div>

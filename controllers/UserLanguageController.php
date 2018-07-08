@@ -36,7 +36,7 @@ class Multilanguage_UserLanguageController extends Omeka_Controller_AbstractActi
                 $prefLanguage = new MultilanguageUserLanguage;
                 $prefLanguage->user_id = $user->id;
             }
-            $userLang = $request->getParam('multilanguage_language_code');
+            $userLang = $request->getParam('multilanguage_locale_code');
             $prefLanguage->lang = isset($availableCodes[$userLang])
                 ? $userLang
                 : $defaultCode;

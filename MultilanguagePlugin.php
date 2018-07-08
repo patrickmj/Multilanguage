@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
         $userLang = ($user && $user->id) ? $this->getUserLang($user, $defaultCode) : $defaultCode;
         $availableCodes = $this->prepareLocaleCodes($userLang);
 
-        $form->addElement('select', 'multilanguage_language_code', array(
+        $form->addElement('select', 'multilanguage_locale_code', array(
             'label' => __('Preferred language'),
             'description' => __('Default language is %s.', $availableCodes[$defaultCode]),
             'multiOptions' => $availableCodes,
@@ -154,7 +154,7 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
     {
         $post = $args['post'];
         $user = $args['record'];
-        if (isset($post['multilanguage_language_code'])) {
+        if (isset($post['multilanguage_locale_code'])) {
             $prefLanguages = get_db()->getTable('MultilanguageUserLanguage')
                 ->findBy(array('user_id' => $user->id));
             if (empty($prefLanguages)) {
@@ -166,7 +166,7 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
 
             $defaultCode = $this->getDefaultLocaleCode();
             $availableCodes = $this->prepareLocaleCodes();
-            $userLang = $post['multilanguage_language_code'];
+            $userLang = $post['multilanguage_locale_code'];
             $prefLanguage->lang = isset($availableCodes[$userLang])
                 ? $userLang
                 : $defaultCode;
