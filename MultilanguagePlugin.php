@@ -37,8 +37,6 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
         'multilanguage_language_codes' => 'a:1:{i:0;s:2:"en";}',
     );
 
-    protected $_translationTable = null;
-
     protected $locale_code;
 
     public function hookInitialize($args)
@@ -303,12 +301,8 @@ ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
         $validSessionLocale = in_array($sessionLocale, $langCodes);
         $defaultCodes = Zend_Locale::getDefault();
         $defaultCode = current(array_keys($defaultCodes));
-        if (!$validSessionLocale) {
-            $this->locale_code = $defaultCode;
-        } else {
-            $this->locale_code = $sessionLocale;
-        }
-        $this->_translationTable = $this->_db->getTable('MultilanguageTranslation');
+        $this->locale_code = $validSessionLocale ? $sessionLocale : $defaultCode;
+
         $user = current_user();
         $userPrefLanguageCode = false;
         $userPrefLanguage = false;
