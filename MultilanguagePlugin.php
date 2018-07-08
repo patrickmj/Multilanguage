@@ -296,15 +296,6 @@ ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
         }
     }
 
-    public function filterGuestUserLinks($links)
-    {
-        $links['Multilanguage'] = array(
-            'label' => __('Preferred Language'),
-            'uri' => url('multilanguage/user-language/user-language'),
-        );
-        return $links;
-    }
-
     public function filterLocale($locale)
     {
         $sessionLocale = $this->getLocaleFromGetOrSession($locale);
@@ -368,6 +359,22 @@ ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
 
         //weird to be adding filters here, but translations weren't happening consistently when it was in setUp
         //@TODO: check if this oddity is due to setting the priority high
+        $this->addFilterElements();
+
+        return $this->locale_code;
+    }
+
+    public function filterGuestUserLinks($links)
+    {
+        $links['Multilanguage'] = array(
+            'label' => __('Preferred Language'),
+            'uri' => url('multilanguage/user-language/user-language'),
+        );
+        return $links;
+    }
+
+    protected function addFilterElements()
+    {
         $translatableElements = unserialize(get_option('multilanguage_elements'));
         if (is_array($translatableElements)) {
             foreach ($translatableElements as $elementSet=>$elements) {
@@ -381,8 +388,6 @@ ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
                 }
             }
         }
-
-        return $this->locale_code;
     }
 
     public function filterTranslateField($components, $args)
