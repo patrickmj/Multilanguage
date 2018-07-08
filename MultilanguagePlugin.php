@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__ . '/helpers/functions.php';
+
 class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
 {
     protected $_hooks = array(
@@ -12,6 +15,8 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
         // 'admin_users_browse_each',
         'users_form',
         'after_save_user',
+        // No hook for simple page form.
+        'after_save_simple_pages_page',
         'exhibits_browse_sql',
         'simple_pages_pages_browse_sql',
     );
@@ -172,6 +177,11 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
                 : $defaultCode;
             $prefLanguage->save();
         }
+    }
+
+    public function hookAfterSaveSimplePagesPage($args)
+    {
+        $this->saveLocaleCodeRecord($args);
     }
 
     public function hookExhibitsBrowseSql($args)
@@ -412,5 +422,67 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
         }
 
         return $availableCodes;
+    }
+
+    protected function saveLocaleCodeRecord($args)
+    {
+        $post = $args['post'];
+        $record = $args['record'];
+        if (array_key_exists('locale_code', $post)) {
+            $localeCode = $post['locale_code'];
+
+            // Remove the locale code of the record if wanted and if any.
+            if (empty($localeCode)) {
+                if ($post['insert']) {
+                    return;
+                }
+                $localeCodeRecord = $this->localeCodeRecord($record);
+                if ($localeCodeRecord) {
+                    $localeCodeRecord->delete();
+                    return;
+                }
+            }
+
+            // Check the locale code.
+            $availableCodes = $this->prepareLocaleCodes();
+            if (!isset($availableCodes[$localeCode])) {
+                return;
+            }
+
+            $localeCodeRecord = $this->localeCodeRecord($record);
+
+            // Don't update the locale code if unchanged.
+            if ($localeCodeRecord && $localeCodeRecord->lang === $localeCode) {
+                return;
+            }
+
+            if (empty($localeCodeRecord)) {
+                $localeCodeRecord = new MultilanguageContentLanguage;
+                $localeCodeRecord->record_type = get_class($record);
+                $localeCodeRecord->record_id = (int) $record->id;
+            }
+
+            $localeCodeRecord->lang = $localeCode;
+            $localeCodeRecord->save();
+        }
+    }
+
+    /**
+     * Get the locale code of a record, if any.
+     *
+     * @param Omeka_Record_AbstractRecord $record
+     * @return MultilanguageContentLanguage|null
+     */
+    protected function localeCodeRecord(Omeka_Record_AbstractRecord $record)
+    {
+        $table = get_db()->getTable('MultilanguageContentLanguage');
+        $select = $table->getSelectForFindBy(
+            array(
+                'record_type' => get_class($record),
+                'record_id' => $record->id,
+            )
+        );
+        $contentLanguage = $table->fetchObject($select);
+        return $contentLanguage;
     }
 }

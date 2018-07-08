@@ -83,6 +83,22 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
         }
     }
 
+    public function localeCodeRecordAction()
+    {
+        $recordType = $_GET['record_type'];
+        $recordId = $_GET['record_id'];
+        $contentLanguage = $this->fetchContentLanguageRecord($recordType, $recordId);
+        $result = empty($contentLanguage) ? null : $contentLanguage->lang;
+        $this->_helper->json($result);
+    }
+
+    public function listLocaleCodesAction()
+    {
+        $locales = unserialize(get_option('multilanguage_language_codes'));
+        $locales = array_map('locale_human', array_combine($locales, $locales));
+        $this->_helper->json($locales);
+    }
+
     public function listLocaleCodesRecordAction()
     {
         if (empty($_GET['record_type'])) {

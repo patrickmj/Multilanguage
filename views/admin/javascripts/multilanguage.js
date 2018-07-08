@@ -119,5 +119,72 @@ jQuery(document).ready(function() {
             );
         });
 
+        /**
+         * Add a select input to set the language of a record (simple page, exhibit…).
+         */
+
+        $('.simple-pages #content form section').filter(':first').each(function(index) {
+            var metadata = $(this);
+            var record_type;
+            var record_id;
+            var insertNthChild;
+            var recordExists;
+            record_type = 'SimplePagesPage';
+            insertNthChild = '2';
+            recordExists = metadata.parent('form').find('#save a.delete-confirm');
+
+            // TODO How to get the id of the new record? Use slug?
+            var record_id = recordExists.attr('href').split('/').pop();
+
+            if (!recordExists.length) {
+                var html = '<div class="field">'
+                    + '<div id="locale_code-label" class="two columns alpha">'
+                    + '<label for="locale_code" class="optional">Locale</label>'
+                    + '</div>'
+                    + '<div class="inputs five columns omega">'
+                    + '<p class="explanation">The locale can be set only after a first save of this record.</p>'
+                    + '<select name="locale_code" id="locale_code" disabled="disabled">'
+                    + '<option value="" selected="selected">Select below…</option>'
+                    + '</select>'
+                    + '</div>'
+                    + '</div>';
+                metadata.find('.field:nth-child(' + insertNthChild + ')').after(html);
+                return;
+            }
+
+            $.get(baseUrl + '/admin/multilanguage/translations/list-locale-codes',
+                null,
+                function(availableCodes) {
+                    if (!availableCodes) {
+                        return;
+                    }
+
+                    $.get(baseUrl + '/admin/multilanguage/translations/locale-code-record',
+                        {record_type: record_type, record_id: record_id},
+                        function(localeCode) {
+                            var html = '<div class="field">'
+                                + '<div id="locale_code-label" class="two columns alpha">'
+                                + '<label for="locale_code" class="optional">Locale</label>'
+                                + '</div>'
+                                + '<div class="inputs five columns omega">'
+                                + '<p class="explanation">The locale of this record.</p>'
+                                + '<select name="locale_code" id="locale_code">'
+                                + '<option value="" selected="selected">Select below…</option>'
+                                + '</select>'
+                                + '</div>'
+                                + '</div>';
+                            metadata.find('.field:nth-child(' + insertNthChild + ')').after(html);
+                            $.each(availableCodes, function(value, text) {
+                                $('#locale_code').append(
+                                    $('<option></option>').val(value).html(text)
+                                );
+                            });
+                            $('#locale_code').val(localeCode);
+                        }
+                    );
+                }
+            );
+        });
+
     });
 }(window.jQuery, window, document));
