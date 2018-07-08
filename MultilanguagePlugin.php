@@ -8,6 +8,7 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
         'initialize',
         'install',
         'uninstall',
+        'upgrade',
         'config',
         'config_form',
         'admin_head',
@@ -19,6 +20,8 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
         'after_save_simple_pages_page',
         // No hook for exhibit form.
         'after_save_exhibit',
+        'after_delete_simple_pages_page',
+        'after_delete_exhibit',
         'exhibits_browse_sql',
         'simple_pages_pages_browse_sql',
     );
@@ -77,7 +80,8 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
   `user_id` int(10) unsigned NOT NULL,
   `lang` tinytext COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `user_id` (`user_id`)
+  UNIQUE KEY `user_id` (`user_id`),
+  CONSTRAINT `user_id` FOREIGN KEY (`user_id`) REFERENCES `$db->User` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
 
         ";
@@ -97,6 +101,32 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
 
         $sql = "DROP TABLE $db->MultilanguageUserLanguage";
         $db->query($sql);
+    }
+
+    public function hookUpgrade($args)
+    {
+        $oldVersion = $args['old_version'];
+        $newVersion = $args['new_version'];
+
+        if (version_compare($oldVersion, '1.1', '<')) {
+            $db = $this->_db;
+
+            // Remove deleted records.
+            $sql = "
+DELETE FROM $db->MultilanguageUserLanguage
+WHERE user_id NOT IN (SELECT id FROM $db->User);
+            ";
+            $db->query($sql);
+
+            // Add a automatic deletion for users.
+            $sql = "
+ALTER TABLE `$db->MultilanguageUserLanguage`
+ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
+            ";
+            $db->query($sql);
+
+            // TODO Remove deleted records from MultilanguageContentLanguage.
+        }
     }
 
     public function hookConfigForm()
@@ -189,6 +219,16 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
     public function hookAfterSaveExhibit($args)
     {
         $this->saveLocaleCodeRecord($args);
+    }
+
+    public function hookAfterDeleteSimplePagesPage($args)
+    {
+        $this->deleteLocaleCodeRecord($args);
+    }
+
+    public function hookAfterDeleteExhibit($args)
+    {
+        $this->deleteLocaleCodeRecord($args);
     }
 
     public function hookExhibitsBrowseSql($args)
@@ -471,6 +511,15 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
 
             $localeCodeRecord->lang = $localeCode;
             $localeCodeRecord->save();
+        }
+    }
+
+    protected function deleteLocaleCodeRecord($args)
+    {
+        $record = $args['record'];
+        $localeCodeRecord = $this->localeCodeRecord($record);
+        if ($localeCodeRecord) {
+            $localeCodeRecord->delete();
         }
     }
 
