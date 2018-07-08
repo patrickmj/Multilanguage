@@ -8,7 +8,9 @@ Omeka multilanguage.
 Installation
 ------------
 
-Install the plugin in the usual Omeka way.
+Uncompress files and rename plugin folder `Multilanguage`.
+
+Then install it like any other Omeka plugin and follow the config instructions.
 
 
 Configuration
@@ -42,11 +44,25 @@ clickables to add a translation for those elements.
 Those links just display the not-always-transparent locale code. Basic training
 will be needed to teach translators which codes correspond to which languages.
 
+In the public front-end, the visitor will see the translated metadata according
+to the current language. If the metadata is not translated, the original
+metadata is displayed.
+
 ### Other Content
 
 Simple Pages and Exhibits can be assigned a language code from the Multilanguage
 Content tab. For a multilanguage site, you will have to recreate your pages and
 exhibits in the new languages.
+
+In the public front-end, the menu will display only links to simple pages that
+matches the current language of the user. So the admin should includes all in
+the navigation menu.
+
+For the exhibits, the list of exhibits will be limited to the exhibits that
+match the current language of the user.
+
+The pages and exhibits with a language that doesn’t match the current language
+are still accessible, as long as the link is known or is hard coded somewhere.
 
 
 Limitations
@@ -90,5 +106,51 @@ without updating the language assignments from the Multilanguage Content tab.
 Each new SP or Exhibit requires a language assignment from that page.
 
 
+Warning
+-------
+
+Use it at your own risk.
+
+It’s always recommended to backup your files and your databases and to check
+your archives regularly so you can roll back if needed.
+
+
+Troubleshooting
+---------------
+
+See online issues on the [plugin issues] page on GitHub.
+
+
+License
+-------
+
+This plugin is published under [GNU/GPL v3].
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+
+Copyright
+---------
+
+* Copyright 2015-2016 Patrick Murray-John (see [patrickmj] on Github)
+* Copyright Daniel Berthereau, 2018 (see [Daniel-KM] on GitHub)
+
+
 [Multilanguage]: https://github.com/patrickmj/multilanguage
 [Omeka]: https://omeka.org
+[plugin issues]: https://github.com/patrickmj/Multilanguage/issues
+[GNU/GPL v3]: https://www.gnu.org/licenses/gpl-3.0.html
+[patrickmj]: https://github.com/patrickmj
+[Daniel-KM]: https://github.com/Daniel-KM "Daniel Berthereau"
