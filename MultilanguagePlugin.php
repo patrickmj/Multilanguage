@@ -11,8 +11,11 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
         'upgrade',
         'config',
         'config_form',
+        'define_routes',
         'admin_head',
         'admin_footer',
+        'public_head',
+        'public_header',
         // 'admin_users_browse_each',
         'users_form',
         'after_save_user',
@@ -27,14 +30,18 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
     );
 
     protected $_filters = array(
-        'guest_user_links',
-        'locale',
         // Note: the filter locale adds some filters.
+        'locale',
+        'admin_navigation_global',
+        'guest_user_links',
     );
 
     protected $_options = array(
+        'multilanguage_append_header' => true,
+        // The value is: serialize(array('en'))
+        'multilanguage_locales' => 'a:1:{i:0;s:2:"en";}',
+        'multilanguage_locales_admin' => 'a:1:{i:0;s:2:"en";}',
         'multilanguage_elements' => 'a:1:{s:11:"Dublin Core";a:3:{i:0;s:5:"Title";i:1;s:11:"Description";i:2;s:7:"Subject";}}',
-        'multilanguage_language_codes' => 'a:1:{i:0;s:2:"en";}',
     );
 
     protected $locale_code;
@@ -132,14 +139,24 @@ ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
 
             // TODO Remove deleted records from MultilanguageContentLanguage.
         }
+
+        if (version_compare($oldVersion, '1.2', '<')) {
+            set_option('multilanguage_append_header', $this->_options ['multilanguage_append_header']);
+            set_option('multilanguage_locales', get_option('multilanguage_language_codes'));
+            set_option('multilanguage_locales_admin', get_option('multilanguage_language_codes'));
+            delete_option('multilanguage_language_codes');
+        }
     }
 
     public function hookConfigForm()
     {
         $view = get_view();
 
-        $multilanguageCodes = get_option('multilanguage_language_codes');
-        $multilanguageCodes = $multilanguageCodes ? unserialize($multilanguageCodes) : array();
+        $locales = get_option('multilanguage_locales');
+        $locales = $locales ? unserialize($locales) : array();
+
+        $localesAdmin = get_option('multilanguage_locales_admin');
+        $localesAdmin = $localesAdmin ? unserialize($localesAdmin) : array();
 
         $files = scandir(BASE_DIR . '/application/languages');
         foreach ($files as $file) {
@@ -164,7 +181,8 @@ ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
         }
 
         echo $view->partial('plugins/multilanguage-config-form.php', array(
-            'multilanguageCodes' => $multilanguageCodes,
+            'locales' => $locales,
+            'localesAdmin' => $localesAdmin,
             'codes' => $codes,
             'translatableElementIds' => $translatableElementIds,
         ));
@@ -173,6 +191,7 @@ ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
     public function hookConfig($args)
     {
         $post = $args['post'];
+
         $elements = array();
         $elTable = get_db()->getTable('Element');
         foreach ($post['element_sets'] as $elId) {
@@ -183,14 +202,46 @@ ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
             }
             $elements[$elSet->name][] = $element->name;
         }
-        set_option('multilanguage_elements', serialize($elements));
-        set_option('multilanguage_language_codes', serialize($post['multilanguage_language_codes']));
+        $post['element_sets'] = $elements;
+
+        foreach ($this->_options as $optionKey => $optionValue) {
+            if (isset($post[$optionKey])) {
+                switch ($optionKey) {
+                    case 'multilanguage_locales':
+                    case 'multilanguage_locales_admin':
+                    case 'multilanguage_elements':
+                        $post[$optionKey] = serialize($post[$optionKey]);
+                        break;
+                }
+                set_option($optionKey, $post[$optionKey]);
+            }
+        }
+    }
+
+    public function hookDefineRoutes($args)
+    {
+        $router = $args['router'];
+        $router->addRoute(
+            'multilanguage-setlocale',
+            new Zend_Controller_Router_Route(
+                'setlocale',
+                array(
+                    'module' => 'multilanguage',
+                    'controller' => 'setlocale',
+                    'action' => 'index',
+                )
+            )
+        );
     }
 
     public function hookAdminHead()
     {
         queue_css_file('multilanguage');
         queue_js_file('multilanguage');
+        $enabledLocales = unserialize(get_option('multilanguage_locales_admin'));
+        if ($enabledLocales) {
+            queue_css_file('flag-icon-css/css/flag-icon.min');
+        }
     }
 
     public function hookAdminFooter()
@@ -203,6 +254,19 @@ ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
         var baseUrl = '" . WEB_ROOT . "';
         </script>
         ";
+    }
+
+    public function hookPublicHead()
+    {
+        queue_css_file('locale-switcher');
+        queue_css_file('flag-icon-css/css/flag-icon.min');
+    }
+
+    public function hookPublicHeader($args)
+    {
+        if (get_option('multilanguage_append_header')) {
+            echo $args['view']->localeSwitcher();
+        }
     }
 
     public function hookUsersForm($args)
@@ -296,66 +360,139 @@ ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
 
     public function filterLocale($locale)
     {
-        $sessionLocale = $this->getLocaleFromGetOrSession($locale);
-        $langCodes = unserialize(get_option('multilanguage_language_codes'));
-        $validSessionLocale = in_array($sessionLocale, $langCodes);
-        $defaultCodes = Zend_Locale::getDefault();
-        $defaultCode = current(array_keys($defaultCodes));
-        $this->locale_code = $validSessionLocale ? $sessionLocale : $defaultCode;
+        $enabledLocales = is_admin_theme()
+            ? unserialize(get_option('multilanguage_locales_admin'))
+            : unserialize(get_option('multilanguage_locales'));
 
-        $user = current_user();
-        $userPrefLanguageCode = false;
-        $userPrefLanguage = false;
-        if ($user) {
-            $prefLanguages = $this->_db->getTable('MultilanguageUserLanguage')
-                ->findBy(array('user_id' => $user->id));
-            if (!empty($prefLanguages)) {
-                $userPrefLanguage = $prefLanguages[0];
-                $userPrefLanguageCode = $userPrefLanguage->lang;
-                $this->locale_code = $userPrefLanguageCode;
-            }
-        }
+        // Get the locale from url argument if any, else session, else user, else browser.
+        $newLocale = null;
 
-        if (!$validSessionLocale && !$userPrefLanguageCode) {
-            $codes = $langCodes;
-            //dump the site's default code to the end as a fallback
-            $codes[] = $defaultCode;
-            $browserCodes = array_keys(Zend_Locale::getBrowser());
-            $match = false;
-            foreach ($browserCodes as $browserCode) {
-                if (in_array($browserCode, $codes)) {
-                    $this->locale_code = $browserCode;
-                    $match = true;
-                    break;
+        if (empty($enabledLocales)) {
+            $newLocale = $this->getDefaultLocaleCode();
+        } elseif (isset($_GET['lang'])
+            && ($getLocale = html_escape($_GET['lang']))
+            && in_array($getLocale, $enabledLocales)
+        ) {
+            $newLocale = $getLocale;
+        } else {
+            // Make sure the session has been configured properly
+            Zend_Registry::get('bootstrap')->bootstrap('Session');
+            $session = new Zend_Session_Namespace('locale');
+
+            if ($session->locale && in_array($session->locale, $enabledLocales)) {
+                $newLocale = $session->locale;
+            } else {
+                $user = current_user();
+                if ($user) {
+                    $prefLanguages = $this->_db->getTable('MultilanguageUserLanguage')
+                        ->findBy(array('user_id' => $user->id));
+                    if ($prefLanguages) {
+                        $userPrefLanguage = reset($prefLanguages);
+                        $newLocale = $userPrefLanguage->lang;
+                    }
                 }
-            }
-            if (!$match) {
-                // Failed to find browserCode in our language codes.
-                // Try to match a two character code and set it to
-                // the closest equivalent if available.
-                $shortcodes = array();
-                foreach ($codes as $c) {
-                    $shortcodes[] = substr($c, 0, 2);
-                }
-                foreach ($browserCodes as $bcode) {
-                    if (in_array($bcode, $shortcodes)) {
-                        $lenCodes = count($codes);
-                        for ($i = 0; $i < $lenCodes; $i++) {
-                            if (strcmp($bcode, $shortcodes[$i]) == 0) {
-                                $this->locale_code = $codes[$i];
-                                break 2;
+
+                // Get the locale from the browser.
+                // TODO Get the locale from the browser: to be simplified.
+                if (empty($newLocale)) {
+                    $defaultCode = $this->getDefaultLocaleCode();
+                    $codes = $enabledLocales;
+                    //dump the site's default code to the end as a fallback
+                    $codes[] = $defaultCode;
+                    $browserCodes = array_keys(Zend_Locale::getBrowser());
+                    $match = false;
+                    foreach ($browserCodes as $browserCode) {
+                        if (in_array($browserCode, $codes)) {
+                            $newLocale = $browserCode;
+                            $match = true;
+                            break;
+                        }
+                    }
+                    if (!$match) {
+                        // Failed to find browserCode in our language codes.
+                        // Try to match a two character code and set it to
+                        // the closest equivalent if available.
+                        $shortcodes = array();
+                        foreach ($codes as $c) {
+                            $shortcodes[] = substr($c, 0, 2);
+                        }
+                        foreach ($browserCodes as $bcode) {
+                            if (in_array($bcode, $shortcodes)) {
+                                $lenCodes = count($codes);
+                                for ($i = 0; $i < $lenCodes; $i++) {
+                                    if (strcmp($bcode, $shortcodes[$i]) == 0) {
+                                        $newLocale = $codes[$i];
+                                        break 2;
+                                    }
+                                }
                             }
+                        }
+                    }
+
+                    // From plugin Locale Switcher.
+                    if (empty($newLocale)) {
+                        if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
+                            $languages = array_map(function($l) {
+                                list($lang, $q) = array_pad(explode(';', $l), 2, null);
+                                return str_replace('-', '_', trim($lang));
+                            }, explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']));
+
+                            foreach ($languages as $language) {
+                                if (in_array($language, $enabledLocales)) {
+                                    $newLocale = $language;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (empty($newLocale)) {
+                            $newLocale = $defaultCode;
                         }
                     }
                 }
             }
         }
 
+        $this->locale_code = $newLocale;
+
         //weird to be adding filters here, but translations weren't happening consistently when it was in setUp
         //@TODO: check if this oddity is due to setting the priority high
         $this->addFilterElements();
 
         return $this->locale_code;
+    }
+
+    public function filterAdminNavigationGlobal($nav)
+    {
+        $enabledLocales = unserialize(get_option('multilanguage_locales_admin'));
+        if (empty($enabledLocales)) {
+            return $nav;
+        }
+
+        $currentLocale = Zend_Registry::get('bootstrap')->getResource('Locale')->toString();
+        $currentUrl = Zend_Controller_Front::getInstance()->getRequest()->getRequestUri();
+        $view = get_view();
+
+        foreach ($enabledLocales as $locale) {
+            $language = Zend_Locale::getTranslation(substr($locale, 0, 2), 'language');
+            $country = $view->localeToCountry($locale);
+
+            $url = url('setlocale', array('locale' => $locale, 'redirect' => $currentUrl));
+            $title = locale_human($locale);
+            $class = 'flag-icon flag-icon-' . strtolower($country);
+            if ($locale === $currentLocale) {
+                $class .= ' active';
+            }
+            $link = array(
+                'label' => null,
+                'uri' => $url,
+                'class' => $class,
+                'title' => $title,
+            );
+            $nav[] = $link;
+        }
+
+        return $nav;
     }
 
     public function filterGuestUserLinks($links)
@@ -389,7 +526,7 @@ ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
         $record = $args['record'];
         $element = $args['element'];
         $type = get_class($record);
-        $languages = unserialize(get_option('multilanguage_language_codes'));
+        $languages = unserialize(get_option('multilanguage_locales'));
         $html = __('Translate to:');
         foreach ($languages as $code) {
             $html .= sprintf(' <li data-element-id="%s" data-code="%s" data-record-id="%s" data-record-type="%s" class="multilanguage-code">%s</li>',
@@ -419,20 +556,6 @@ ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
             }
         }
         return $translateText;
-    }
-
-    protected function getLocaleFromGetOrSession($locale)
-    {
-        $session = new Zend_Session_Namespace;
-
-        if (isset($_GET['lang'])) {
-            $locale = html_escape($_GET['lang']);
-            $session->lang = $locale;
-        } elseif (isset($session->lang)) {
-            $locale = $session->lang;
-        }
-
-        return $locale;
     }
 
     protected function getDefaultLocaleCode()
@@ -469,7 +592,7 @@ ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
             $lang = $defaultCode;
         }
 
-        $codes = unserialize(get_option('multilanguage_language_codes')) ?: array();
+        $codes = unserialize(get_option('multilanguage_locales')) ?: array();
         array_unshift($codes, $defaultCode);
         foreach ($codes as $code) {
             $parts = explode('_', $code);

@@ -1,0 +1,21 @@
+ul.locale-switcher {
+    font-size: 120%;
+}
+
+ul.locale-switcher li {
+    display: inline-block;
+    margin: 2px;
+}
+
+ul.locale-switcher a {
+    display: block;
+}
+
+ul.locale-switcher .flag-icon {
+    border: 1px solid lightgrey;
+    box-sizing: content-box;
+}
+
+ul.locale-switcher .flag-icon.active {
+    box-shadow: 0px 0px 3px 1px rgba(128, 128, 128, 0.9);
+}

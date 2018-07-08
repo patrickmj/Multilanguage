@@ -69,7 +69,7 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
 
     public function listLocaleCodesAction()
     {
-        $locales = unserialize(get_option('multilanguage_language_codes'));
+        $locales = unserialize(get_option('multilanguage_locales'));
         $locales = array_map('locale_human', array_combine($locales, $locales));
         $this->_helper->json($locales);
     }
