@@ -16,11 +16,24 @@ foreach ($files as $file) {
         if (isset($parts[1])) {
             $langCode = $parts[0];
             $regionCode = $parts[1];
-            $language = Zend_Locale::getTranslation($langCode, 'language', $langCode);
-            $region = Zend_Locale::getTranslation($regionCode, 'territory', $langCode);
+            try {
+                $language = Zend_Locale::getTranslation($langCode, 'language', $langCode);
+            } catch (Exception $e) {
+                $language = $langCode;
+            }
+            try {
+                $region = Zend_Locale::getTranslation($regionCode, 'territory', $langCode);
+            } catch (Exception $e) {
+                $region = $regionCode;
+            }
         } else {
             $region = '';
-            $language = Zend_Locale::getTranslation($code, 'language', $code);
+            // Avoid an issue with "oc".
+            try {
+                $language = Zend_Locale::getTranslation($code, 'language', $code);
+            } catch (Exception $e) {
+                $language = $code;
+            }
         }
         if ($region != '') {
             $region = " - $region";
