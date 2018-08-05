@@ -77,6 +77,13 @@ Some functions should be used in themes in order to use features of Omeka.
 
 See the file [`helpers/functions.php`] for more information.
 
+Furthermore, the option `snippet` of function `metadata` is not supported. If
+needed, replace it by `snippet(metadata(...), $start, $end)` or, when html
+should be escaped:
+```
+html_escape(snippet(metadata($item, array('Dublin Core', 'Description'), array('no_escape' => true)), 0, 150));
+```
+
 
 Limitations
 -----------
