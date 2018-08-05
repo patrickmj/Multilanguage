@@ -6,13 +6,13 @@ class Table_MultilanguageRelatedRecord extends Omeka_Db_Table
      * Get all the records related to another record (simple page, exhibit…).
      *
      * @param string $recordType
-     * @param int $recordId
+     * @param int|string $recordIdOrSlug The record id if numeric, else a slug.
      * @param bool $included Include the specified record to the list.
      * @return array List of record ids.
      */
-    public function findRelatedRecords($recordType, $recordId, $included = false)
+    public function findRelatedRecords($recordType, $recordIdOrSlug, $included = false)
     {
-        $recordIds = $this->findRelatedRecordIds($recordType, $recordId, $included);
+        $recordIds = $this->findRelatedRecordIds($recordType, $recordIdOrSlug, $included);
         if (empty($recordIds)) {
             return array();
         }
@@ -28,13 +28,13 @@ class Table_MultilanguageRelatedRecord extends Omeka_Db_Table
      * Get all source records related to a record (simple page, exhibit…).
      *
      * @param string $recordType
-     * @param int $recordId
+     * @param int|string $recordIdOrSlug The record id if numeric, else a slug.
      * @param bool $included Include the specified record to the list.
      * @return Omeka_Record_AbstractRecord[] List of records.
      */
-    public function findRelatedSourceRecords($recordType, $recordId, $included = false)
+    public function findRelatedSourceRecords($recordType, $recordIdOrSlug, $included = false)
     {
-        $recordIds = $this->findRelatedRecordIds($recordType, $recordId, $included);
+        $recordIds = $this->findRelatedRecordIds($recordType, $recordIdOrSlug, $included);
         if (empty($recordIds)) {
             return array();
         }
@@ -48,19 +48,17 @@ class Table_MultilanguageRelatedRecord extends Omeka_Db_Table
     /**
      * Get the related source record (simple page, exhibit…) for a locale.
      *
-     * The cuy
-     *
      * @param string $recordType
-     * @param int $recordId
+     * @param int|string $recordIdOrSlug The record id if numeric, else a slug.
      * @param string $locale
      * @return Omeka_Record_AbstractRecord
      */
-    public function findRelatedSourceRecordForLocale($recordType, $recordId, $locale)
+    public function findRelatedSourceRecordForLocale($recordType, $recordIdOrSlug, $locale)
     {
         if (empty($locale)) {
             return;
         }
-        $recordIds = $this->findRelatedSourceRecordIdsWithLocale($recordType, $recordId, true);
+        $recordIds = $this->findRelatedSourceRecordIdsWithLocale($recordType, $recordIdOrSlug, true);
         if (empty($recordIds)) {
             return;
         }
@@ -76,13 +74,13 @@ class Table_MultilanguageRelatedRecord extends Omeka_Db_Table
      * exhibit…).
      *
      * @param string $recordType
-     * @param int $recordId
+     * @param int|string $recordIdOrSlug The record id if numeric, else a slug.
      * @param bool $included Include the specified record to the list.
      * @return array List of record ids by slug.
      */
-    public function findRelatedSourceRecordSlugIds($recordType, $recordId, $included = false)
+    public function findRelatedSourceRecordSlugIds($recordType, $recordIdOrSlug, $included = false)
     {
-        $recordIds = $this->findRelatedRecordIds($recordType, $recordId, $included);
+        $recordIds = $this->findRelatedRecordIds($recordType, $recordIdOrSlug, $included);
         if (empty($recordIds)) {
             return array();
         }
@@ -101,16 +99,16 @@ class Table_MultilanguageRelatedRecord extends Omeka_Db_Table
      * Get all records with locale related to a record (simple page, exhibit…).
      *
      * @param string $recordType
-     * @param int $recordId
+     * @param int|string $recordIdOrSlug The record id if numeric, else a slug.
      * @param bool $included Include the specified record to the list.
      * @return array Associative array of record ids and locale, if any.
      */
-    public function findRelatedSourceRecordIdsWithLocale($recordType, $recordId, $included = false)
+    public function findRelatedSourceRecordIdsWithLocale($recordType, $recordIdOrSlug, $included = false)
     {
         // Note: The process cannot be done with a simple left joint, since it
         // should be based on record_id or related_id.
 
-        $recordIds = $this->findRelatedRecordIds($recordType, $recordId, $included);
+        $recordIds = $this->findRelatedRecordIds($recordType, $recordIdOrSlug, $included);
         if (empty($recordIds)) {
             return array();
         }
@@ -130,42 +128,48 @@ class Table_MultilanguageRelatedRecord extends Omeka_Db_Table
      * Get all the record ids related to another record (simple page, exhibit…).
      *
      * @param string $recordType
-     * @param int $recordId
+     * @param int|string $recordIdOrSlug The record id if numeric, else a slug.
      * @param bool $included Include the specified record to the list.
      * @return array List of record ids.
      */
-    public function findRelatedRecordIds($recordType, $recordId, $included = false)
+    public function findRelatedRecordIds($recordType, $recordIdOrSlug, $included = false)
     {
-        $recordId = (int) $recordId;
+        $recordId = is_numeric($recordIdOrSlug)
+            ? (int) $recordIdOrSlug
+            : $this->findRecordIdFromSlug($recordType, $recordIdOrSlug);
+        if (empty($recordId)) {
+            return array();
+        }
 
         /*
-         // TODO Write the query that merge the three queries.
-         $options = array(
-             'record_type' => $recordType,
-             'record_id' => $recordId,
-         );
-         $select = $this->getSelectForFindBy($options)
-             ->reset(Zend_Db_Select::COLUMNS)
-             ->from(array(), array('related_id'))
-             ->where('multilanguage_related_records.related_id != ?', $recordId);
-         $relatedIds = $this->getDb()->fetchCol($select);
+        // TODO Write the query that merge the three queries.
+        $options = array(
+            'record_type' => $recordType,
+            'record_id' => $recordId,
+        );
+        $select = $this->getSelectForFindBy($options)
+            ->reset(Zend_Db_Select::COLUMNS)
+            ->from(array(), array('related_id'))
+            ->where('multilanguage_related_records.related_id != ?', $recordId);
+        $relatedIds = $this->getDb()->fetchCol($select);
 
-         $options = array(
-             'record_type' => $recordType,
-             'related_id' => $recordId,
-         );
-         $select = $this->getSelectForFindBy($options)
-             ->reset(Zend_Db_Select::COLUMNS)
-             ->from(array(), array('record_id'))
-             ->where('multilanguage_related_records.record_id != ?', $recordId);
-         $recordIds = $this->getDb()->fetchCol($select);
+        $options = array(
+            'record_type' => $recordType,
+            'related_id' => $recordId,
+        );
+        $select = $this->getSelectForFindBy($options)
+            ->reset(Zend_Db_Select::COLUMNS)
+            ->from(array(), array('record_id'))
+            ->where('multilanguage_related_records.record_id != ?', $recordId);
+        $recordIds = $this->getDb()->fetchCol($select);
 
-         // Add indirect related ids when there are more than one relation.
-         $recordIds = array_unique(array_merge($relatedIds, $recordIds));
-         // TODO Query to get all indirect ids.
-         $recordIds = $this->getDb()->fetchCol($select);
-         */
+        // Add indirect related ids when there are more than one relation.
+        $recordIds = array_unique(array_merge($relatedIds, $recordIds));
+        // TODO Query to get all indirect ids.
+        $recordIds = $this->getDb()->fetchCol($select);
+        */
 
+        // TODO Write the query that merge the queries.
         $db = $this->_db;
         $table = $db->MultilanguageRelatedRecord;
         $sql = "
@@ -204,4 +208,26 @@ ORDER BY related_record_id;
         sort($result);
         return $result;
     }
+
+    /**
+     * Get the record id from a slug with a direct query to avoid filters.
+     *
+     * @param string $recordType
+     * @param string $slug
+     * @return int|null
+     */
+    protected function findRecordIdFromSlug($recordType, $slug)
+    {
+        $db = $this->_db;
+        $select =  $db->getTable($recordType)
+            ->getSelect()
+            ->reset(Zend_Db_Select::COLUMNS)
+            ->from(array(), 'id')
+            ->where('slug = ?', $slug)
+            ->limit(1)
+            ->reset(Zend_Db_Select::ORDER);
+        $recordId = $db->fetchOne($select);
+        return $recordId;
+    }
 }
+
