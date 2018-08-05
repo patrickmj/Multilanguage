@@ -712,13 +712,13 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
 
     protected function processRelatedRecordsRecord($record, $post)
     {
-        $relatedRecordIds = array_filter(array_map('intval', $post['related_records']));
-        sort($relatedRecordIds);
-
         // No relation can be set for a new record.
         if ($post['insert']) {
             return;
         }
+
+        $relatedRecordIds = array_filter(array_map('intval', $post['related_records']));
+        sort($relatedRecordIds);
 
         $recordType = get_class($record);
         $recordId = (int) $record->id;
@@ -812,3 +812,4 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
         return $records;
     }
 }
+

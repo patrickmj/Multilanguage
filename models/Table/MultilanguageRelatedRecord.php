@@ -17,9 +17,10 @@ class Table_MultilanguageRelatedRecord extends Omeka_Db_Table
             return array();
         }
         $recordIdsString = implode(',', $recordIds);
+        $tableAlias = $this->getTableAlias();
         $select = $this->getSelect()
-            ->where($this->getTableAlias() . ".record_id IN ($recordIdsString)")
-            ->orWhere($this->getTableAlias() . ".related_id IN ($recordIdsString)");
+            ->where($tableAlias . '.record_type = ?', $recordType)
+            ->where("$tableAlias.record_id IN ($recordIdsString) OR $tableAlias.related_id IN ($recordIdsString)");
         return $this->fetchObjects($select);
     }
 
@@ -171,7 +172,7 @@ class Table_MultilanguageRelatedRecord extends Omeka_Db_Table
 SELECT DISTINCT(IF(record_id = ?, related_id, record_id)) AS related_record_id
 FROM `$table`
 WHERE record_type = ?
-AND record_id = ? OR related_id = ?
+AND (record_id = ? OR related_id = ?)
 ORDER BY related_record_id;
 ";
         $recordIds = $db->fetchCol($sql, array($recordId, $recordType, $recordId, $recordId));
@@ -186,7 +187,7 @@ ORDER BY related_record_id;
 SELECT DISTINCT(IF(record_id IN ($recordIdsString), related_id, record_id)) AS related_record_id
 FROM `$table`
 WHERE record_type = ?
-AND record_id IN ($recordIdsString) OR related_id IN ($recordIdsString)
+AND (record_id IN ($recordIdsString) OR related_id IN ($recordIdsString))
 ORDER BY related_record_id;
 ";
         $result = $db->fetchCol($sql, array($recordType));
