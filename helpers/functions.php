@@ -63,3 +63,40 @@ function locale_record_from_id_or_slug($recordType, $recordIdOrSlug, $locale = n
     return $translated;
 }
 
+/**
+ * Return the HTML for summarizing a random featured exhibit
+ *
+ * @see exhibit_builder_display_random_featured_exhibit()
+ *
+ * @return string
+ */
+function locale_exhibit_builder_display_random_featured_exhibit()
+{
+    $html = '<div id="featured-exhibit">';
+    $featuredExhibit = locale_exhibit_builder_random_featured_exhibit();
+    $html .= '<h2>' . __('Featured Exhibit') . '</h2>';
+    if ($featuredExhibit) {
+        $html .= get_view()->partial('exhibits/single.php', array('exhibit' => $featuredExhibit));
+    } else {
+        $html .= '<p>' . __('You have no featured exhibits.') . '</p>';
+    }
+    $html .= '</div>';
+    $html = apply_filters('exhibit_builder_display_random_featured_exhibit', $html);
+    return $html;
+}
+
+/**
+ * Return a random featured exhibit.
+ *
+ * @see exhibit_builder_random_featured_exhibit()
+ *
+ * @return Exhibit|null
+ */
+function locale_exhibit_builder_random_featured_exhibit()
+{
+    return get_record('Exhibit', array(
+        'featured' => 1,
+         'sort_field' => 'random',
+    ));
+}
+

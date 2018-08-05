@@ -66,6 +66,17 @@ match the current language of the user.
 The pages and exhibits with a language that doesn’t match the current language
 are still accessible, as long as the link is known or is hard coded somewhere.
 
+### Theme adaptation
+
+Some functions should be used in themes in order to use features of Omeka.
+
+- `locale_record()`
+- `locale_record_from_id_or_slug()`
+- `locale_exhibit_builder_display_random_featured_exhibit()`
+- `locale_exhibit_builder_random_featured_exhibit()`
+
+See the file [`helpers/functions.php`] for more information.
+
 
 Limitations
 -----------
@@ -160,9 +171,11 @@ Copyright
 [Multilanguage]: https://github.com/patrickmj/multilanguage
 [Omeka]: https://omeka.org
 [locale switcher]: https://github.com/Daniel-KM/Omeka-plugin-LocaleSwitcher
+[`helpers/functions.php`]: https://github.com/patrickmj/Multilanguage/blob/master/helpers/functions.php
 [flag-icon-css]: http://flag-icon-css.lip.is/
 [plugin issues]: https://github.com/patrickmj/Multilanguage/issues
 [GNU/GPL v3]: https://www.gnu.org/licenses/gpl-3.0.html
 [patrickmj]: https://github.com/patrickmj
 [BibLibre]: https://github.com/BibLibre
 [Daniel-KM]: https://github.com/Daniel-KM "Daniel Berthereau"
+
