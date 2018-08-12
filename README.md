@@ -13,6 +13,9 @@ Uncompress files and rename plugin folder `Multilanguage`.
 
 Then install it like any other Omeka plugin and follow the config instructions.
 
+The plugin [Translations] may be useful too to translate hard-coded strings of
+the theme.
+
 
 Configuration
 -------------
@@ -74,6 +77,7 @@ Some functions should be used in themes in order to use features of Omeka.
 - `locale_record_from_id_or_slug()`
 - `locale_exhibit_builder_display_random_featured_exhibit()`
 - `locale_exhibit_builder_random_featured_exhibit()`
+- `locale_convert_url()`
 
 See the file [`helpers/functions.php`] for more information.
 
@@ -178,6 +182,7 @@ Copyright
 [Multilanguage]: https://github.com/patrickmj/multilanguage
 [Omeka]: https://omeka.org
 [locale switcher]: https://github.com/Daniel-KM/Omeka-plugin-LocaleSwitcher
+[Translations]: https://github.com/Daniel-KM/Omeka-plugin-Translations
 [`helpers/functions.php`]: https://github.com/patrickmj/Multilanguage/blob/master/helpers/functions.php
 [flag-icon-css]: http://flag-icon-css.lip.is/
 [plugin issues]: https://github.com/patrickmj/Multilanguage/issues

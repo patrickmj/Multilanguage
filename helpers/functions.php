@@ -100,3 +100,40 @@ function locale_exhibit_builder_random_featured_exhibit()
     ));
 }
 
+/**
+ * Get the translated url from the url of an exhibit or a simple page.
+ *
+ * @todo Manage simple pages with "/" in the slug.
+ *
+ * @param string $url A standard Omeka url (/items/show/xxx, /exhibit/show/yyy…).
+ * @return string The translated url or the original one.
+ */
+function locale_convert_url($url)
+{
+    // The url may be an exhibit.
+    if (($pos = strpos($url, '/exhibits/show/')) !== false) {
+        $idOrSlug = substr($url, $pos + 15);
+        if ($idOrSlug) {
+            $translated = locale_record_from_id_or_slug('Exhibit', $idOrSlug);
+            if ($translated) {
+                $url = record_url($translated);
+            }
+        }
+    }
+    // The url may be a simple page.
+    elseif (strpos($url, '/items/show/') === false
+        && strpos($url, '/collections/show/') === false
+        && strpos($url, '/files/show/') === false
+    ) {
+        // Get the last part of the url.
+        $slugUrl = explode('/', $url);
+        $slug = array_pop($slugUrl);
+        if ($slug) {
+            $translated = locale_record_from_id_or_slug('SimplePagesPage', $slug);
+            if ($translated) {
+                $url = record_url($translated);
+            }
+        }
+    }
+    return $url;
+}
