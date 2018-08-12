@@ -18,8 +18,12 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
 
         if (isset($post['translation_id'])) {
             $translation = $db->getTable('MultilanguageTranslation')
-                ->find( ['translation_id']);
-        } else {
+                ->find($post['translation_id']);
+        } elseif ($post['record_id'] && $post['record_type'] && $post['element_id'] && $post['locale_code'] && $post['text']) {
+            $translation = $db->getTable('MultilanguageTranslation')
+                ->getTranslation($post['record_id'], $post['record_type'], $post['element_id'], $post['locale_code'], $post['text']);
+        }
+        if (empty($translation)) {
             $translation = new MultilanguageTranslation;
         }
 
