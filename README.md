@@ -71,6 +71,29 @@ are still accessible, as long as the link is known or is hard coded somewhere.
 
 ### Theme adaptation
 
+#### Standard functions
+
+- `metadata()`
+  The option `no_escape` should be set to `true` anytime.
+
+```php
+// Instead of:
+metadata($item, array('Dublin Core', 'Description'));
+// the theme should use:
+html_escape(metadata($item, array('Dublin Core', 'Description'), array('no_escape' => true)));
+```
+  In particular, this is required when the option `snippet` is used.
+
+```php
+// Instead of:
+metadata($item, array('Dublin Core', 'Description'), array('snippet' => 150));
+// the theme should use:
+html_escape(snippet(metadata($item, array('Dublin Core', 'Description'), array('no_escape' => true)), 0, 150));
+```
+
+
+#### Specific functions
+
 Some functions should be used in themes in order to use features of Omeka.
 
 - `locale_record()`
@@ -80,13 +103,6 @@ Some functions should be used in themes in order to use features of Omeka.
 - `locale_convert_url()`
 
 See the file [`helpers/functions.php`] for more information.
-
-Furthermore, the option `snippet` of function `metadata` is not supported. If
-needed, replace it by `snippet(metadata(...), $start, $end)` or, when html
-should be escaped:
-```
-html_escape(snippet(metadata($item, array('Dublin Core', 'Description'), array('no_escape' => true)), 0, 150));
-```
 
 
 Limitations
