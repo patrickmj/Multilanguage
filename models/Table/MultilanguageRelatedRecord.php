@@ -39,9 +39,10 @@ class Table_MultilanguageRelatedRecord extends Omeka_Db_Table
             return array();
         }
         $recordIdsString = implode(',', $recordIds);
-        $select = $this->_db->getTable($recordType)
-            ->getSelect()
-            ->where('id IN (' . $recordIdsString . ')');
+        $table = $this->_db->getTable($recordType);
+        $alias = $table->getTableAlias();
+        $select = $table->getSelect()
+            ->where($alias . '.id IN (' . $recordIdsString . ')');
         return $this->fetchObjects($select);
     }
 
@@ -80,19 +81,66 @@ class Table_MultilanguageRelatedRecord extends Omeka_Db_Table
      */
     public function findRelatedSourceRecordSlugIds($recordType, $recordIdOrSlug, $included = false)
     {
+        if ($recordType === 'ExhibitPage') {
+            return $this->findRelatedSourceExhibitPageSlugIds($recordIdOrSlug, $included);
+        }
+
         $recordIds = $this->findRelatedRecordIds($recordType, $recordIdOrSlug, $included);
         if (empty($recordIds)) {
             return array();
         }
+
         $recordIdsString = implode(',', $recordIds);
-        $columns = array('slug', 'id');
-        $select = $this->_db->getTable($recordType)
-            ->getSelect()
+        $table = $this->_db->getTable($recordType);
+        $alias = $table->getTableAlias();
+        // Prepend the alias to avoid issue on some tables with join.
+        $columns = array(
+            'slug' => $alias . '.slug',
+            'id' => $alias . '.id',
+        );
+        $select = $table->getSelect()
             ->reset(Zend_Db_Select::COLUMNS)
             ->from(array(), $columns)
-            ->where('id IN (' . $recordIdsString . ')')
+            ->where($alias . '.id IN (' . $recordIdsString . ')')
             ->order(reset($columns));
         return $this->fetchPairs($select);
+    }
+
+    /**
+     * Get all source record slugs and ids related to an exhibit page.
+     *
+     * @param int $recordId The record id.
+     * @param bool $included Include the specified record to the list.
+     * @return array List of record ids by slug.
+     */
+    public function findRelatedSourceExhibitPageSlugIds($recordId, $included = false)
+    {
+        $recordType = 'ExhibitPage';
+        $recordId = (int) $recordId;
+        $recordIds = $this->findRelatedRecordIds($recordType, $recordId, $included);
+        if (empty($recordIds)) {
+            return array();
+        }
+
+        $recordIdsString = implode(',', $recordIds);
+        $table = $this->_db->getTable($recordType);
+        $alias = $table->getTableAlias();
+        $columns = array(
+            'slug' => 'exhibit_pages.slug',
+            'id' => 'exhibit_pages.id',
+            'exhibit' => 'exhibits.slug',
+        );
+        $select = $table->getSelect()
+            ->reset(Zend_Db_Select::COLUMNS)
+            ->from(array(), $columns)
+            ->where($alias . '.id IN (' . $recordIdsString . ')')
+            ->order(array('exhibits.slug asc', 'exhibit_pages.slug asc'));
+        $result = $this->_db->fetchAll($select);
+        $list = array();
+        foreach ($result as $v) {
+            $list[$v['exhibit'] . ' > ' . $v['slug']] = $v['id'];
+        }
+        return $list;
     }
 
     /**
@@ -114,8 +162,8 @@ class Table_MultilanguageRelatedRecord extends Omeka_Db_Table
         }
         $recordIdsString = implode(',', $recordIds);
         $columns = array('record_id', 'lang');
-        $select = $this->_db->getTable('MultilanguageContentLanguage')
-            ->getSelect()
+        $table = $this->_db->getTable('MultilanguageContentLanguage');
+        $select = $table->getSelect()
             ->reset(Zend_Db_Select::COLUMNS)
             ->from(array(), $columns)
             ->where('record_type = ?', $recordType)
@@ -219,15 +267,15 @@ ORDER BY related_record_id;
     protected function findRecordIdFromSlug($recordType, $slug)
     {
         $db = $this->_db;
-        $select =  $db->getTable($recordType)
-            ->getSelect()
+        $table = $this->_db->getTable($recordType);
+        $alias = $table->getTableAlias();
+        $select =  $table->getSelect()
             ->reset(Zend_Db_Select::COLUMNS)
-            ->from(array(), 'id')
-            ->where('slug = ?', $slug)
+            ->from(array(), $alias . '.id')
+            ->where($alias . '.slug = ?', $slug)
             ->limit(1)
             ->reset(Zend_Db_Select::ORDER);
         $recordId = $db->fetchOne($select);
         return $recordId;
     }
 }
-

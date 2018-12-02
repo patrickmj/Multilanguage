@@ -23,8 +23,11 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
         'after_save_simple_pages_page',
         // No hook for exhibit form.
         'after_save_exhibit',
+        'after_save_exhibit_page',
         'after_delete_simple_pages_page',
         'after_delete_exhibit',
+        'after_delete_exhibit_page',
+        // No hook to browse exhibit page: the language is the exhibit one.
         'exhibits_browse_sql',
         'simple_pages_pages_browse_sql',
     );
@@ -355,12 +358,22 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
         $this->saveMultilangueRecord($args);
     }
 
+    public function hookAfterSaveExhibitPage($args)
+    {
+        $this->saveMultilangueRecord($args);
+    }
+
     public function hookAfterDeleteSimplePagesPage($args)
     {
         $this->deleteMultilangueRecord($args);
     }
 
     public function hookAfterDeleteExhibit($args)
+    {
+        $this->deleteMultilangueRecord($args);
+    }
+
+    public function hookAfterDeleteExhibitPage($args)
     {
         $this->deleteMultilangueRecord($args);
     }

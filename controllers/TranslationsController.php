@@ -66,6 +66,20 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
     {
         $recordType = $_GET['record_type'];
         $recordId = $_GET['record_id'];
+
+        // TODO Should the exhibit pages be the same language than the exhibit?
+        // The language code of exhibit page is the exhibit's one.
+        // The page should be created and the exhibit should have a language.
+        if ($recordType === 'ExhibitPage') {
+            $record = get_record_by_id($recordType, $recordId);
+            if (!$record) {
+                $this->_helper->json(null);
+                return;
+            }
+            $recordType = 'Exhibit';
+            $recordId = $record->exhibit_id;
+        }
+
         $contentLanguage = $this->fetchContentLanguageRecord($recordType, $recordId);
         $result = empty($contentLanguage) ? null : $contentLanguage->lang;
         $this->_helper->json($result);
@@ -75,6 +89,22 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
     {
         $locales = unserialize(get_option('multilanguage_locales'));
         $locales = array_map('locale_human', array_combine($locales, $locales));
+
+        // The language code of exhibit page is the exhibit's one.
+        // The page should be created and the exhibit should have a language.
+        $recordType = $_GET['record_type'];
+        if ($recordType === 'ExhibitPage') {
+            // Get the language code of this exhibit, if any.
+            $recordId = $_GET['record_id'];
+            $record = get_record_by_id($recordType, $recordId);
+            if ($record) {
+                $contentLanguage = $this->fetchContentLanguageRecord('Exhibit', $record->exhibit_id);
+                if ($contentLanguage) {
+                    $locales = array_intersect_key($locales, array($contentLanguage->lang => $contentLanguage->lang));
+                }
+            }
+        }
+
         $this->_helper->json($locales);
     }
 
@@ -100,11 +130,48 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
         $this->listRecordIds(array('slug', 'id'));
     }
 
+    /**
+     * List exhibit pages by slug (prepended with exhibit to avoid collision).
+     *
+     * @todo Use a select optgroup.
+     *
+     * The slugs are unique by exhibit, but may be the same across exhibits.
+     */
+    public function listExhibitPagesByExhibitSlugAction()
+    {
+        $recordType = empty($_GET['record_type']) ? null : $_GET['record_type'];
+        if ($recordType !== 'ExhibitPage') {
+            $this->_helper->json(array());
+            return;
+        }
+
+        $columns = array(
+            'slug' => 'exhibit_pages.slug',
+            'id' => 'exhibit_pages.id',
+            'exhibit' => 'exhibits.slug',
+        );
+
+        $db = get_db();
+        $table = $db->getTable($recordType);
+        $select = $table->getSelectForFindBy()
+            ->reset(Zend_Db_Select::COLUMNS)
+            ->from(array(), $columns)
+            ->order(array('exhibits.slug asc', 'exhibit_pages.slug asc'));
+        $result = $db->fetchAll($select);
+        $list = array();
+        foreach ($result as $v) {
+            $list[$v['exhibit'] . ' > ' . $v['slug']] = $v['id'];
+        }
+
+        $this->_helper->json($list);
+    }
+
     protected function listRecordIds($columns)
     {
         $recordType = empty($_GET['record_type']) ? null : $_GET['record_type'];
         $recordTypes = array(
             'Exhibit',
+            'ExhibitPage',
             'SimplePagesPage',
         );
         $recordType = in_array($recordType, $recordTypes) ? $recordType : null;
@@ -113,13 +180,22 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
             return;
         }
 
+        if ($recordType === 'ExhibitPage') {
+            return $this->listExhibitPagesByExhibitSlugAction();
+        }
+
         $db = get_db();
         $table = $db->getTable($recordType);
         $alias = $table->getTableAlias();
+        // Prepend the alias to avoid issue on some tables with join.
+        foreach ($columns as &$column) {
+            $column = $alias . '.' . $column;
+        }
+        unset($column);
         $select = $table->getSelectForFindBy()
             ->reset(Zend_Db_Select::COLUMNS)
             ->from(array(), $columns)
-            ->order($alias . '.' . reset($columns));
+            ->order(reset($columns));
         $result = $db->fetchPairs($select);
         $this->_helper->json($result);
     }
@@ -129,6 +205,7 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
         $recordType = empty($_GET['record_type']) ? null : $_GET['record_type'];
         $recordTypes = array(
             'Exhibit',
+            'ExhibitPage',
             'SimplePagesPage',
         );
         $recordType = in_array($recordType, $recordTypes) ? $recordType : null;
@@ -139,8 +216,13 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
         }
 
         $db = get_db();
-        $result  = $db->getTable('MultilanguageRelatedRecord')
-            ->findRelatedSourceRecordSlugIds($recordType, $recordId);
+        if ($recordType === 'ExhibitPage') {
+            $result  = $db->getTable('MultilanguageRelatedRecord')
+                ->findRelatedSourceExhibitPageSlugIds($recordId);
+        } else {
+            $result  = $db->getTable('MultilanguageRelatedRecord')
+                ->findRelatedSourceRecordSlugIds($recordType, $recordId);
+        }
         $this->_helper->json($result);
     }
 
@@ -174,6 +256,7 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
     {
         $recordTypes = array(
             'Exhibit',
+            'ExhibitPage',
             'SimplePagesPage',
         );
         $recordType = in_array($recordType, $recordTypes) ? $recordType : null;

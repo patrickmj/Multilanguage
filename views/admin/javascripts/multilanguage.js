@@ -28,8 +28,8 @@ jQuery(document).ready(function() {
                         'locale_code' : target.data('code'),
                         'text' : text
                     };
-                jQuery.get(baseUrl + '/admin/multilanguage/translations/translation', 
-                    data, 
+                jQuery.get(baseUrl + '/admin/multilanguage/translations/translation',
+                    data,
                     function(translationData) {
                         jQuery('#multilanguage-translation').val(translationData.translation);
                         dialog.translationId = translationData.id;
@@ -118,33 +118,43 @@ jQuery(document).ready(function() {
                 }
             );
         });
+        // The language of the exhibit page is the one of the exhibit.
 
         /**
          * Add a select input to set the language of a record (simple page, exhibit…).
          */
 
-        $('.simple-pages #content form section, .exhibits #content form section fieldset').filter(':first').each(function(index) {
+        $('.simple-pages #content form section, .exhibits #content form section fieldset, .exhibits #exhibit-page-form fieldset')
+            .filter(':first').each(function(index) {
+
             var metadata = $(this);
             var record_type;
             var record_id;
             var insertNthChild;
             var form;
             var recordExists;
+            var record_id;
             if ($('body').hasClass('simple-pages')) {
                 record_type = 'SimplePagesPage';
                 insertNthChild = '2';
                 form = metadata.parent('form');
-            } else if ($('body').hasClass('exhibits')) {
+                recordExists = form.find('#save a.delete-confirm');
+                record_id = recordExists.length ? recordExists.attr('href').split('/').pop() : null;
+            } else if ($('body').hasClass('exhibits') && $('#exhibit-metadata-form').length) {
                 record_type = 'Exhibit';
                 insertNthChild = '3';
                 form = metadata.parent().parent();
+                recordExists = form.find('#save a.delete-confirm');
+                record_id = recordExists.length ? recordExists.attr('href').split('/').pop() : null;
+            } else if ($('body').hasClass('exhibits') && $('#exhibit-page-form').length) {
+                record_type = 'ExhibitPage';
+                insertNthChild = '3';
+                form = metadata.parent().parent();
+                recordExists = window.location.href.indexOf('edit-page') >= 0;
+                record_id = recordExists ? window.location.href.split('/').pop() : null;
             } else {
                 return;
             }
-            recordExists = form.find('#save a.delete-confirm');
-
-            // TODO How to get the id of the new record? Use slug?
-            var record_id = recordExists.length ? recordExists.attr('href').split('/').pop() : null;
 
             if (!record_id) {
                 var html = '<div class="field">'
@@ -163,7 +173,7 @@ jQuery(document).ready(function() {
             }
 
             $.get(baseUrl + '/admin/multilanguage/translations/list-locale-codes',
-                null,
+                {record_type: record_type, record_id: record_id},
                 function(availableCodes) {
                     $.get(baseUrl + '/admin/multilanguage/translations/list-related-records',
                         {record_type: record_type, record_id: record_id},
@@ -174,25 +184,40 @@ jQuery(document).ready(function() {
                                     $.get(baseUrl + '/admin/multilanguage/translations/locale-code-record',
                                         {record_type: record_type, record_id: record_id},
                                         function(localeCode) {
+                                            // console.log({availableCodes: availableCodes, relatedRecords: relatedRecords, records: records, localeCode: localeCode});
                                             // Input fields for the current record.
-                                            var html = '<div class="field">'
-                                                + '<div id="locale_code-label" class="two columns alpha">'
-                                                + '<label for="locale_code" class="optional">Locale</label>'
-                                                + '</div>'
-                                                + '<div class="inputs five columns omega">'
-                                                + '<p class="explanation">The locale of this record.</p>'
-                                                + '<select name="locale_code" id="locale_code">'
-                                                + '<option value="" selected="selected">Select below…</option>'
-                                                + '</select>'
-                                                + '</div>'
-                                                + '</div>';
+                                            var html = '';
+                                            if (record_type === 'ExhibitPage') {
+                                                html += '<div class="field">'
+                                                    + '<div id="locale_code-label" class="two columns alpha">'
+                                                    + '<label for="locale_code" class="optional">Locale</label>'
+                                                    + '</div>'
+                                                    + '<div class="inputs five columns omega">'
+                                                    + '<p class="explanation">The locale of this page is the exhibit’s one.</p>'
+                                                    + '<select name="locale_code" id="locale_code">'
+                                                    + '</select>'
+                                                    + '</div>'
+                                                    + '</div>';
+                                            } else {
+                                                html += '<div class="field">'
+                                                    + '<div id="locale_code-label" class="two columns alpha">'
+                                                    + '<label for="locale_code" class="optional">Locale</label>'
+                                                    + '</div>'
+                                                    + '<div class="inputs five columns omega">'
+                                                    + '<p class="explanation">The locale of this record.</p>'
+                                                    + '<select name="locale_code" id="locale_code">'
+                                                    + '<option value="" selected="selected">Select below…</option>'
+                                                    + '</select>'
+                                                    + '</div>'
+                                                    + '</div>';
+                                            }
                                             html += '<div class="field">'
                                                 + '<div id="related_records-label" class="two columns alpha">'
                                                 + '<label for="related_records[]" class="optional">Translations</label>'
                                                 + '</div>'
                                                 + '<div class="inputs five columns omega">'
                                                 + '<p class="explanation">The records that are a translation of the current record.</p>'
-                                                + '<select name="related_records[]" id="related_records" multiple="multiple">'
+                                                + '<select name="related_records[]" id="related_records" multiple="multiple" size="12">'
                                                 + '</select>'
                                                 + '</div>'
                                                 + '</div>';
@@ -234,6 +259,10 @@ jQuery(document).ready(function() {
                                                         } else if (record_type == 'Exhibit') {
                                                             $('#related_record_links').append(
                                                                 $('<li></li>').html('<a href="' + baseUrl + '/admin/exhibits/edit/' + value + '">' + text + '</a>')
+                                                            );
+                                                        } else if (record_type == 'ExhibitPage') {
+                                                            $('#related_record_links').append(
+                                                                $('<li></li>').html('<a href="' + baseUrl + '/admin/exhibits/edit-page/' + value + '">' + text + '</a>')
                                                             );
                                                         }
                                                     }
