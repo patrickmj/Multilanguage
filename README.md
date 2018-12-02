@@ -66,6 +66,8 @@ the navigation menu.
 For the exhibits, the list of exhibits will be limited to the exhibits that
 match the current language of the user.
 
+The language of the exhibit pages is forced to their exhibit’s one.
+
 The pages and exhibits with a language that doesn’t match the current language
 are still accessible, as long as the link is known or is hard coded somewhere.
 
@@ -143,7 +145,7 @@ exhibits in the new languages.
 
 If the plugin is installed, Simple Pages and Exhibits content will disappear
 without updating the language assignments from the Multilanguage Content tab.
-Each new SP or Exhibit requires a language assignment from that page.
+Each new simple page or Exhibit requires a language assignment from that page.
 
 
 Warning

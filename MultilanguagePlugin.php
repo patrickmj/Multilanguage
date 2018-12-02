@@ -154,8 +154,6 @@ ALTER TABLE `$db->MultilanguageUserLanguage`
 ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
             ";
             $db->query($sql);
-
-            // TODO Remove deleted records from MultilanguageContentLanguage.
         }
 
         if (version_compare($oldVersion, '1.2', '<')) {
@@ -180,9 +178,20 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
             ";
             $db->query($sql);
-
-            // TODO Remove deleted records from MultilanguageContentLanguage.
         }
+
+        if (version_compare($oldVersion, '1.4', '<')) {
+            // Set language of all exhibit pages to the exhibit’s one.
+            $exhibits = get_records('Exhibit', array(), 0);
+            foreach ($exhibits as $exhibit) {
+                $contentLanguage = $this->localeCodeRecord($exhibit);
+                if ($contentLanguage) {
+                    $this->updateOrDeleteExhibitPagesLang($exhibit->id, $contentLanguage->lang);
+                }
+            }
+        }
+
+        // TODO Remove deleted records from MultilanguageContentLanguage.
     }
 
     public function hookConfigForm()
@@ -356,10 +365,24 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
     public function hookAfterSaveExhibit($args)
     {
         $this->saveMultilangueRecord($args);
+
+        // Set language of all exhibit pages to the exhibit’s one.
+        $exhibit = $args['record'];
+        $contentLanguage = $this->localeCodeRecord($exhibit);
+        $lang = $contentLanguage->lang ? $contentLanguage->lang : null;
+        $this->updateOrDeleteExhibitPagesLang($exhibit->id, $lang);
     }
 
     public function hookAfterSaveExhibitPage($args)
     {
+        // Force the lang of the exhibit page.
+        $record = $args['record'];
+        $exhibit = get_record_by_id('Exhibit', $record->exhibit_id);
+        $contentLanguage = $this->localeCodeRecord($exhibit);
+        $lang = $contentLanguage->lang ? $contentLanguage->lang : null;
+        $post = $args['post'];
+        $post['locale_code'] = $lang;
+        $args['post'] = $post;
         $this->saveMultilangueRecord($args);
     }
 
@@ -823,6 +846,34 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
         $records = get_db()->getTable('MultilanguageRelatedRecord')
             ->findRelatedRecords($recordType, $recordId, $included);
         return $records;
+    }
+
+    /**
+     * Force the language of all pages to the exhibit's one.
+     *
+     * @param int $exhibitId
+     * @param string|null $lang
+     */
+    protected function updateOrDeleteExhibitPagesLang($exhibitId, $lang)
+    {
+        $db = $this->_db;
+        if (empty($lang)) {
+            $sql = "
+DELETE FROM `{$db->MultilanguageContentLanguage}`
+WHERE `id` in (
+    SELECT DISTINCT `id` FROM `{$db->ExhibitPage}`
+    WHERE `exhibit_id` = $exhibitId;
+);
+            ";
+        } else {
+            $sql = "
+INSERT INTO `{$db->MultilanguageContentLanguage}` (`record_type`, `record_id`, `lang`)
+SELECT 'ExhibitPage', `id`, '$lang'
+FROM `{$db->ExhibitPage}`
+WHERE `exhibit_id` = $exhibitId;
+            ";
+        }
+        $db->query($sql);
     }
 }
 
