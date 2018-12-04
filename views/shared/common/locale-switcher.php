@@ -1,4 +1,5 @@
-<?php if ($locales):
+<?php
+if ($locales):
     $currentLocale = Zend_Registry::get('bootstrap')->getResource('Locale')->toString();
     $request = Zend_Controller_Front::getInstance()->getRequest();
     $currentUrl = $request ->getRequestUri();
@@ -14,6 +15,11 @@
                         $query['record_type'] = 'Exhibit';
                         $exhibit = get_current_record('exhibit');
                         $query['id'] = $exhibit->id;
+                        break;
+                    case 'show':
+                        $query['record_type'] = 'ExhibitPage';
+                        $exhibitPage = get_current_record('exhibit_page');
+                        $query['id'] = $exhibitPage->id;
                         break;
                 endswitch;
                 break;

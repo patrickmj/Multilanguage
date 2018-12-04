@@ -10,7 +10,7 @@
     <div class="inputs five columns omega">
         <p class="explanation"><?php echo __('If checked, the switcher will be automatically displayed via the hook "public_header", else you need to put it in your theme.'); ?></p>
         <?php echo $this->formCheckbox('multilanguage_append_header', true,
-            array('checked' => (boolean) get_option('multilanguage_append_header'))); ?>
+            array('checked' => (bool) get_option('multilanguage_append_header'))); ?>
     </div>
 </div>
 

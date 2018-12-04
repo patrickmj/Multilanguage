@@ -28,6 +28,28 @@ class Multilanguage_SetlocaleController extends Zend_Controller_Action
                 }
                 break;
 
+            case 'ExhibitPage':
+                $recordId = $request->getParam('id');
+                $record = get_db()->getTable('MultilanguageRelatedRecord')
+                    ->findRelatedSourceRecordForLocale($recordType, $recordId, $locale);
+                if ($record) {
+                    $exhibit = get_record_by_id('Exhibit', $record->exhibit_id);
+                    $url = exhibit_builder_exhibit_uri($exhibit, $record);
+                }
+                // If the page is not translated, redirect to the summary of the
+                // translated exhibit, if any.
+                else {
+                    $record = get_record_by_id('ExhibitPage', $recordId);
+                    $recordType = 'Exhibit';
+                    $recordId = $record->exhibit_id;
+                    $record = get_db()->getTable('MultilanguageRelatedRecord')
+                        ->findRelatedSourceRecordForLocale($recordType, $recordId, $locale);
+                    if ($record) {
+                        $url = exhibit_builder_exhibit_uri($record);
+                    }
+                }
+                break;
+
             case 'SimplePagesPage':
                 $recordId = $request->getParam('id');
                 $record = get_db()->getTable('MultilanguageRelatedRecord')

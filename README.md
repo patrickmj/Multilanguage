@@ -13,6 +13,9 @@ Uncompress files and rename plugin folder `Multilanguage`.
 
 Then install it like any other Omeka plugin and follow the config instructions.
 
+The plugin [Translations] may be useful too to translate hard-coded strings of
+the theme.
+
 
 Configuration
 -------------
@@ -63,8 +66,45 @@ the navigation menu.
 For the exhibits, the list of exhibits will be limited to the exhibits that
 match the current language of the user.
 
+The language of the exhibit pages is forced to their exhibit’s one.
+
 The pages and exhibits with a language that doesn’t match the current language
 are still accessible, as long as the link is known or is hard coded somewhere.
+
+### Theme adaptation
+
+#### Standard functions
+
+- `metadata()`
+  The option `no_escape` should be set to `true` anytime.
+
+```php
+// Instead of:
+metadata($item, array('Dublin Core', 'Description'));
+// the theme should use:
+html_escape(metadata($item, array('Dublin Core', 'Description'), array('no_escape' => true)));
+```
+  In particular, this is required when the option `snippet` is used.
+
+```php
+// Instead of:
+metadata($item, array('Dublin Core', 'Description'), array('snippet' => 150));
+// the theme should use:
+html_escape(snippet(metadata($item, array('Dublin Core', 'Description'), array('no_escape' => true)), 0, 150));
+```
+
+
+#### Specific functions
+
+Some functions should be used in themes in order to use features of Omeka.
+
+- `locale_record()`
+- `locale_record_from_id_or_slug()`
+- `locale_exhibit_builder_display_random_featured_exhibit()`
+- `locale_exhibit_builder_random_featured_exhibit()`
+- `locale_convert_url()`
+
+See the file [`helpers/functions.php`] for more information.
 
 
 Limitations
@@ -105,7 +145,7 @@ exhibits in the new languages.
 
 If the plugin is installed, Simple Pages and Exhibits content will disappear
 without updating the language assignments from the Multilanguage Content tab.
-Each new SP or Exhibit requires a language assignment from that page.
+Each new simple page or Exhibit requires a language assignment from that page.
 
 
 Warning
@@ -160,9 +200,12 @@ Copyright
 [Multilanguage]: https://github.com/patrickmj/multilanguage
 [Omeka]: https://omeka.org
 [locale switcher]: https://github.com/Daniel-KM/Omeka-plugin-LocaleSwitcher
+[Translations]: https://github.com/Daniel-KM/Omeka-plugin-Translations
+[`helpers/functions.php`]: https://github.com/patrickmj/Multilanguage/blob/master/helpers/functions.php
 [flag-icon-css]: http://flag-icon-css.lip.is/
 [plugin issues]: https://github.com/patrickmj/Multilanguage/issues
 [GNU/GPL v3]: https://www.gnu.org/licenses/gpl-3.0.html
 [patrickmj]: https://github.com/patrickmj
 [BibLibre]: https://github.com/BibLibre
 [Daniel-KM]: https://github.com/Daniel-KM "Daniel Berthereau"
+
