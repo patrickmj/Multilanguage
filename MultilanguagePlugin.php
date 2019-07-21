@@ -502,7 +502,7 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
                     // From plugin Locale Switcher.
                     if (empty($newLocale)) {
                         if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
-                            $languages = array_map(function($l) {
+                            $languages = array_map(function ($l) {
                                 list($lang, $q) = array_pad(explode(';', $l), 2, null);
                                 return str_replace('-', '_', trim($lang));
                             }, explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']));
@@ -578,7 +578,7 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
     {
         $translatableElements = unserialize(get_option('multilanguage_elements'));
         if (is_array($translatableElements)) {
-            foreach ($translatableElements as $elementSet=>$elements) {
+            foreach ($translatableElements as $elementSet => $elements) {
                 foreach ($elements as $element) {
                     add_filter(array('Display', 'Item', $elementSet, $element), array($this, 'filterTranslate'), 1);
                     add_filter(array('ElementInput', 'Item', $elementSet, $element), array($this, 'filtertranslateField'), 1);
@@ -599,8 +599,14 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
         $languages = unserialize(get_option('multilanguage_locales'));
         $html = __('Translate to:');
         foreach ($languages as $code) {
-            $html .= sprintf(' <li data-element-id="%s" data-code="%s" data-record-id="%s" data-record-type="%s" class="multilanguage-code">%s</li>',
-                $element->id, $code, $record->id, $type, $code);
+            $html .= sprintf(
+                ' <li data-element-id="%s" data-code="%s" data-record-id="%s" data-record-type="%s" class="multilanguage-code">%s</li>',
+                $element->id,
+                $code,
+                $record->id,
+                $type,
+                $code
+            );
         }
         $components['form_controls'] .= '<ul class="multilanguage">' . $html . '</ul>';
         return $components;
@@ -876,4 +882,3 @@ WHERE `exhibit_id` = $exhibitId;
         $db->query($sql);
     }
 }
-

@@ -217,10 +217,10 @@ class Multilanguage_TranslationsController extends Omeka_Controller_AbstractActi
 
         $db = get_db();
         if ($recordType === 'ExhibitPage') {
-            $result  = $db->getTable('MultilanguageRelatedRecord')
+            $result = $db->getTable('MultilanguageRelatedRecord')
                 ->findRelatedSourceExhibitPageSlugIds($recordId);
         } else {
-            $result  = $db->getTable('MultilanguageRelatedRecord')
+            $result = $db->getTable('MultilanguageRelatedRecord')
                 ->findRelatedSourceRecordSlugIds($recordType, $recordId);
         }
         $this->_helper->json($result);
