@@ -269,7 +269,7 @@ ORDER BY related_record_id;
         $db = $this->_db;
         $table = $this->_db->getTable($recordType);
         $alias = $table->getTableAlias();
-        $select =  $table->getSelect()
+        $select = $table->getSelect()
             ->reset(Zend_Db_Select::COLUMNS)
             ->from(array(), $alias . '.id')
             ->where($alias . '.slug = ?', $slug)

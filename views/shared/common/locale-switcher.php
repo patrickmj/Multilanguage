@@ -2,11 +2,11 @@
 if ($locales):
     $currentLocale = Zend_Registry::get('bootstrap')->getResource('Locale')->toString();
     $request = Zend_Controller_Front::getInstance()->getRequest();
-    $currentUrl = $request ->getRequestUri();
+    $currentUrl = $request->getRequestUri();
     $query = array();
     // Append the record for managed plugins in public front-end.
     if (!is_admin_theme()):
-        $module =  $request->getModuleName();
+        $module = $request->getModuleName();
         switch ($module):
             case 'exhibit-builder':
                 $action = $request->getActionName();
