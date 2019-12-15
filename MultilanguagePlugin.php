@@ -868,7 +868,7 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
 DELETE FROM `{$db->MultilanguageContentLanguage}`
 WHERE `id` in (
     SELECT DISTINCT `id` FROM `{$db->ExhibitPage}`
-    WHERE `exhibit_id` = $exhibitId;
+    WHERE `exhibit_id` = $exhibitId
 );
             ";
         } else {
@@ -876,7 +876,8 @@ WHERE `id` in (
 INSERT INTO `{$db->MultilanguageContentLanguage}` (`record_type`, `record_id`, `lang`)
 SELECT 'ExhibitPage', `id`, '$lang'
 FROM `{$db->ExhibitPage}`
-WHERE `exhibit_id` = $exhibitId;
+WHERE `exhibit_id` = $exhibitId
+;
             ";
         }
         $db->query($sql);
