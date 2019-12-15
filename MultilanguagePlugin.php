@@ -52,6 +52,7 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
     public function hookInitialize($args)
     {
         add_translation_source(dirname(__FILE__) . '/languages');
+        add_translation_source(dirname(dirname(dirname(__FILE__))) . '/themes/' . get_option('public_theme') . '/languages');
     }
 
     public function hookInstall()
