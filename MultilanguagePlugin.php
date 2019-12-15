@@ -240,7 +240,7 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
 
         $elements = array();
         $elTable = get_db()->getTable('Element');
-        foreach ($post['element_sets'] as $elId) {
+        foreach ($post['multilanguage_elements'] as $elId) {
             $element = $elTable->find($elId);
             $elSet = $element->getElementSet();
             if (!array_key_exists($elSet->name, $elements)) {
@@ -248,19 +248,18 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
             }
             $elements[$elSet->name][] = $element->name;
         }
-        $post['element_sets'] = $elements;
+        $post['multilanguage_elements'] = $elements;
 
-        foreach ($this->_options as $optionKey => $optionValue) {
-            if (isset($post[$optionKey])) {
-                switch ($optionKey) {
-                    case 'multilanguage_locales':
-                    case 'multilanguage_locales_admin':
-                    case 'multilanguage_elements':
-                        $post[$optionKey] = serialize($post[$optionKey]);
-                        break;
-                }
-                set_option($optionKey, $post[$optionKey]);
+        $post = array_intersect_key($post, $this->_options);
+        foreach ($post as $optionKey => $optionValue) {
+            switch ($optionKey) {
+                case 'multilanguage_locales':
+                case 'multilanguage_locales_admin':
+                case 'multilanguage_elements':
+                    $optionValue = serialize($optionValue);
+                    break;
             }
+            set_option($optionKey, $optionValue);
         }
     }
 
