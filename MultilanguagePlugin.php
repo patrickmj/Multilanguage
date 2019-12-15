@@ -267,6 +267,11 @@ SQL;
         }
         $post['multilanguage_elements'] = $elements;
 
+        if (!empty($post['multilanguage_translations_reset'])) {
+            $cache = Zend_Registry::get('Zend_Translate');
+            $cache::clearCache();
+        }
+
         $post = array_intersect_key($post, $this->_options);
         foreach ($post as $optionKey => $optionValue) {
             switch ($optionKey) {
