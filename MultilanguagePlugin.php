@@ -191,6 +191,22 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
             }
         }
 
+        if (version_compare($oldVersion, '1.4.1', '<')) {
+            $db = $this->_db;
+
+            $sql = <<<SQL
+UPDATE `$db->MultilanguageTranslation`
+SET `text` = REPLACE(`text`, CONCAT(CHAR(13), CHAR(10)), CHAR(10))
+SQL;
+            $db->query($sql);
+
+            $sql = <<<SQL
+UPDATE `$db->MultilanguageTranslation`
+SET `text` = REPLACE(`text`, CONCAT("\\\\", "r", "\\\\", "n"), CONCAT("\\\\", "n"))
+SQL;
+            $db->query($sql);
+        }
+
         // TODO Remove deleted records from MultilanguageContentLanguage.
     }
 
