@@ -208,6 +208,11 @@ SQL;
             $db->query($sql);
         }
 
+        if (version_compare($oldVersion, '1.5.0', '<')) {
+            $flash = Zend_Controller_Action_HelperBroker::getStaticHelper('FlashMessenger');
+            $flash->addMessage(__('If plugin Translations is installed, it can be removed since this plugin integrates it.'));
+        }
+
         // TODO Remove deleted records from MultilanguageContentLanguage.
     }
 
