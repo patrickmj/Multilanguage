@@ -52,6 +52,7 @@ class MultilanguagePlugin extends Omeka_Plugin_AbstractPlugin
     public function hookInitialize($args)
     {
         add_translation_source(dirname(__FILE__) . '/languages');
+        add_translation_source(dirname(dirname(dirname(__FILE__))) . '/themes/' . get_option('public_theme') . '/languages');
     }
 
     public function hookInstall()
@@ -191,6 +192,27 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
             }
         }
 
+        if (version_compare($oldVersion, '1.4.1', '<')) {
+            $db = $this->_db;
+
+            $sql = <<<SQL
+UPDATE `$db->MultilanguageTranslation`
+SET `text` = REPLACE(`text`, CONCAT(CHAR(13), CHAR(10)), CHAR(10))
+SQL;
+            $db->query($sql);
+
+            $sql = <<<SQL
+UPDATE `$db->MultilanguageTranslation`
+SET `text` = REPLACE(`text`, CONCAT("\\\\", "r", "\\\\", "n"), CONCAT("\\\\", "n"))
+SQL;
+            $db->query($sql);
+        }
+
+        if (version_compare($oldVersion, '1.5.0', '<')) {
+            $flash = Zend_Controller_Action_HelperBroker::getStaticHelper('FlashMessenger');
+            $flash->addMessage(__('If plugin Translations is installed, it can be removed since this plugin integrates it.'));
+        }
+
         // TODO Remove deleted records from MultilanguageContentLanguage.
     }
 
@@ -240,7 +262,7 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
 
         $elements = array();
         $elTable = get_db()->getTable('Element');
-        foreach ($post['element_sets'] as $elId) {
+        foreach ($post['multilanguage_elements'] as $elId) {
             $element = $elTable->find($elId);
             $elSet = $element->getElementSet();
             if (!array_key_exists($elSet->name, $elements)) {
@@ -248,19 +270,23 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
             }
             $elements[$elSet->name][] = $element->name;
         }
-        $post['element_sets'] = $elements;
+        $post['multilanguage_elements'] = $elements;
 
-        foreach ($this->_options as $optionKey => $optionValue) {
-            if (isset($post[$optionKey])) {
-                switch ($optionKey) {
-                    case 'multilanguage_locales':
-                    case 'multilanguage_locales_admin':
-                    case 'multilanguage_elements':
-                        $post[$optionKey] = serialize($post[$optionKey]);
-                        break;
-                }
-                set_option($optionKey, $post[$optionKey]);
+        if (!empty($post['multilanguage_translations_reset'])) {
+            $cache = Zend_Registry::get('Zend_Translate');
+            $cache::clearCache();
+        }
+
+        $post = array_intersect_key($post, $this->_options);
+        foreach ($post as $optionKey => $optionValue) {
+            switch ($optionKey) {
+                case 'multilanguage_locales':
+                case 'multilanguage_locales_admin':
+                case 'multilanguage_elements':
+                    $optionValue = serialize($optionValue);
+                    break;
             }
+            set_option($optionKey, $optionValue);
         }
     }
 
@@ -868,7 +894,7 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
 DELETE FROM `{$db->MultilanguageContentLanguage}`
 WHERE `id` in (
     SELECT DISTINCT `id` FROM `{$db->ExhibitPage}`
-    WHERE `exhibit_id` = $exhibitId;
+    WHERE `exhibit_id` = $exhibitId
 );
             ";
         } else {
@@ -876,7 +902,8 @@ WHERE `id` in (
 INSERT INTO `{$db->MultilanguageContentLanguage}` (`record_type`, `record_id`, `lang`)
 SELECT 'ExhibitPage', `id`, '$lang'
 FROM `{$db->ExhibitPage}`
-WHERE `exhibit_id` = $exhibitId;
+WHERE `exhibit_id` = $exhibitId
+;
             ";
         }
         $db->query($sql);
