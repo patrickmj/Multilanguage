@@ -42,22 +42,30 @@
     </div>
     <div class="inputs five columns omega">
         <p class="explanation"><?php echo __('Select the languages into which your site can be translated.'); ?></p>
-        <div class="input-block">
-            <?php echo $this->formMultiCheckbox('multilanguage_locales', $locales, null, $codes);   ?>
-        </div>
-    </div>
-</div>
-
-<div class="field">
-    <div class="two columns alpha">
-        <?php echo $this->formLabel('multilanguage_locales_admin', __('Admin languages')); ?>
-    </div>
-    <div class="inputs five columns omega">
-        <p class="explanation"><?php echo __('The languages to use for the admin back-end.'); ?></p>
-        <div class="input-block">
-            <?php echo $this->formMultiCheckbox('multilanguage_locales_admin', $localesAdmin, null, $codes); ?>
-        </div>
-    </div>
+		<table id="hide-elements-table">
+			<thead>
+				<tr>
+					<th class="hide-boxes"><?php echo __('Language'); ?></th>
+					<th class="hide-boxes"><?php echo __('Code'); ?></th>
+					<th class="hide-boxes"><?php echo __('Public'); ?></th>
+					<th class="hide-boxes"><?php echo __('Admin'); ?></th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php
+				$pattern = "/\([^\)]*\)/";
+				foreach ($codes as $key=>$code) {
+					echo "<tr>";
+					echo "<td>" . preg_replace($pattern, "", $code) . "</td>";
+					echo "<td>" . $key . "</td>";
+					echo "<td class='center'>" . $this->formCheckbox('multilanguage_locales[]', $key, array('id' => 'multilanguage_locales-' . $key, 'disableHidden' => true, 'checked' => in_array($key, $locales))) . "</td>";
+					echo "<td class='center'>" . $this->formCheckbox('multilanguage_locales_admin[]', $key, array('id' => 'multilanguage_locales_admin-' . $key,'disableHidden' => true, 'checked' => in_array($key, $localesAdmin))) . "</td>";
+					echo "</tr>\n";
+				}
+				?>
+			</tbody>
+		</table>
+	</div>
 </div>
 
 <?php
