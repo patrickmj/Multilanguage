@@ -63,8 +63,8 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageTranslation (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `element_id` int(11) NOT NULL,
   `record_id` int(11) NOT NULL,
-  `record_type` tinytext COLLATE utf8_unicode_ci NOT NULL,
-  `locale_code` tinytext COLLATE utf8_unicode_ci NOT NULL,
+  `record_type` varchar(190) COLLATE utf8_unicode_ci NOT NULL,
+  `locale_code` varchar(190) COLLATE utf8_unicode_ci NOT NULL,
   `text` text COLLATE utf8_unicode_ci,
   `translation` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
@@ -77,9 +77,9 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageTranslation (
         $sql = "
 CREATE TABLE IF NOT EXISTS $db->MultilanguageContentLanguage (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `record_type` tinytext COLLATE utf8_unicode_ci NOT NULL,
+  `record_type` varchar(190) COLLATE utf8_unicode_ci NOT NULL,
   `record_id` int(10) unsigned NOT NULL,
-  `lang` tinytext COLLATE utf8_unicode_ci NOT NULL,
+  `lang` varchar(190) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
         ";
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageContentLanguage (
         $sql = "
 CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `record_type` tinytext COLLATE utf8_unicode_ci NOT NULL,
+  `record_type` varchar(190) COLLATE utf8_unicode_ci NOT NULL,
   `record_id` int(10) unsigned NOT NULL,
   `related_id` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`),
@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
 CREATE TABLE IF NOT EXISTS $db->MultilanguageUserLanguage (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int(10) unsigned NOT NULL,
-  `lang` tinytext COLLATE utf8_unicode_ci NOT NULL,
+  `lang` varchar(190) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_id` (`user_id`),
   CONSTRAINT `user_id` FOREIGN KEY (`user_id`) REFERENCES `$db->User` (`id`) ON DELETE CASCADE
@@ -170,7 +170,7 @@ ADD FOREIGN KEY (`user_id`) REFERENCES `omeka_users` (`id`) ON DELETE CASCADE;
             $sql = "
 CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `record_type` tinytext COLLATE utf8_unicode_ci NOT NULL,
+  `record_type` varchar(190) COLLATE utf8_unicode_ci NOT NULL,
   `record_id` int(10) unsigned NOT NULL,
   `related_id` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`),
