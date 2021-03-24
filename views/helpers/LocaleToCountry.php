@@ -6,6 +6,7 @@ class Multilanguage_View_Helper_LocaleToCountry extends Zend_View_Helper_Abstrac
         'ar' => 'SA',
         'cs' => 'CZ',
         'en' => 'GB',
+        'eo' => 'EO',
         'es' => 'ES',
         'et' => 'EE',
         'eu' => 'ES',
