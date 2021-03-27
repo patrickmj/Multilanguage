@@ -2,119 +2,122 @@
 # Copyright (C) 2014 Patrick Murray-John
 # This file is distributed under the same license as the Omeka package.
 # Patrick Murray-John <EMAIL@ADDRESS>, YEAR.
-#
-#, fuzzy
+# 
+# Translators:
+# Daniele Binaghi, 2019
+# Giorgia Menghinella <archiviofotsc@gmail.com>, 2017
+# Giorgio Comai <g@giorgiocomai.eu>, 2019
 msgid ""
 msgstr ""
-"Project-Id-Version: Locale\n"
+"Project-Id-Version: omeka-plugin-Multilanguage\n"
 "Report-Msgid-Bugs-To: http://github.com/patrickmj/Multilanguage/issues\n"
 "POT-Creation-Date: 2014-09-21 17:49-0500\n"
-"PO-Revision-Date: 2021-03-27 22:33+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2019-09-11 11:48+0000\n"
+"Last-Translator: Daniele Binaghi\n"
+"Language-Team: Italian (http://www.transifex.com/omeka/omeka-plugin-multilanguage/language/it/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: it\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgid "Multilanguage"
-msgstr ""
+msgstr "Multilingua"
 
 #: MultilanguagePlugin.php:56 MultilanguagePlugin.php:335
 #: MultilanguagePlugin.php:56 MultilanguagePlugin.php:579
 #: views/shared/user-language/user-language.php:3
 msgid "Preferred Language"
-msgstr ""
+msgstr "Lingua preferita"
 
 #: MultilanguagePlugin.php:335
 msgid "Default language is %s."
-msgstr ""
+msgstr "La lingua predefinita è %s."
 
 #: MultilanguagePlugin.php:608
 msgid "Translate to: "
-msgstr ""
+msgstr "Traduci in: "
 
 #: views/admin/plugins/multilanguage-config-form.php:2
 msgid "To learn more about translating the core interfaces, %sread this%s."
-msgstr ""
+msgstr "Per saperne di più sulla traduzione dell'interfaccia principale, %sleggi questo%s."
 
 #: views/admin/plugins/multilanguage-config-form.php:7
 msgid "Automatically append to header"
-msgstr ""
+msgstr "Aggiungi automaticamente all'intestazione"
 
 #: views/admin/plugins/multilanguage-config-form.php:10
-msgid "If checked, the switcher will be automatically displayed via the hook "public_header", else you need to put it in your theme."
-msgstr ""
+msgid "If checked, the switcher will be automatically displayed via the hook \"public_header\", else you need to put it in your theme."
+msgstr "Se selezionato, le opzioni di scelta verranno automaticamente mostrate tramite l'hook \"public_header\", altrimenti dovrai inserirli manualmente nel tuoi tema."
 
 #: views/admin/plugins/multilanguage-config-form.php:18
 msgid "Reset translations"
-msgstr ""
+msgstr "Annulla le traduzioni"
 
 #: views/admin/plugins/multilanguage-config-form.php:22
-msgid "Reset all translations when files in "plugins/Translations/languages" or "themes/my-theme/languages" were updated manually."
-msgstr ""
+msgid "Reset all translations when files in \"plugins/Translations/languages\" or \"themes/my-theme/languages\" were updated manually."
+msgstr "Annulla tutte le traduzioni quandi i file in \"plugins/Translations/languages\" or \"themes/my-theme/languages\" sono aggiornati manualmente."
 
 #: views/admin/plugins/multilanguage-config-form.php:30
 msgid "Language display mode"
-msgstr ""
+msgstr "Modo di visualizzazione lingua"
 
 #: views/admin/plugins/multilanguage-config-form.php:33
 msgid "Select the language display mode for your site (both Admin and Public side)."
-msgstr ""
+msgstr "Seleziona il modo di visualizzazione lingua per il tuo sito (sia lato Admin che Pubblico)"
 
 #: views/admin/plugins/multilanguage-config-form.php:36
 msgid "Flag (default)"
-msgstr ""
+msgstr "Bandiera (predefinito)"
 
 #: views/admin/plugins/multilanguage-config-form.php:37
 msgid "2-letters language code"
-msgstr ""
+msgstr "Codice lingua di 2 lettere"
 
 #: views/admin/plugins/multilanguage-config-form.php:38
 msgid "Full language name"
-msgstr ""
+msgstr "Nome intero della lingua"
 
 #: views/admin/plugins/multilanguage-config-form.php:45
 msgid "Languages"
-msgstr ""
+msgstr "Lingue"
 
 #: views/admin/plugins/multilanguage-config-form.php:48
 msgid "Select the languages into which your site can be translated."
-msgstr ""
+msgstr "Seleziona le lingue in vuoi rendere traducibile il tuo sito"
 
 #: views/admin/plugins/multilanguage-config-form.php:52
 msgid "Language"
-msgstr ""
+msgstr "Lingua"
 
 #: views/admin/plugins/multilanguage-config-form.php:53
 msgid "Code"
-msgstr ""
+msgstr "Codice"
 
 #: views/admin/plugins/multilanguage-config-form.php:54
 msgid "Public"
-msgstr ""
+msgstr "Pubblico"
 
 #: views/admin/plugins/multilanguage-config-form.php:55
 msgid "Admin"
-msgstr ""
+msgstr "Admin"
 
 #: views/admin/plugins/multilanguage-config-form.php:80
 msgid "Record Elements"
-msgstr ""
+msgstr "Elementi dei record"
 
 #: views/admin/plugins/multilanguage-config-form.php:83
 msgid "Check the metadata fields that you want to make translatable."
-msgstr ""
+msgstr "Seleziona i campi di metadati che vuoi rendere traducibili"
 
 #: views/shared/user-language/user-language.php:8
 msgid "Select your preferred language"
-msgstr ""
+msgstr "Seleziona la tua lingua preferita"
 
 #: views/shared/user-language/user-language.php:11
 msgid "The default language is %s"
-msgstr ""
+msgstr "La lingua predefinita è"
 
 #: views/shared/user-language/user-language.php:20
 msgid "Save Changes"
-msgstr ""
+msgstr "Salva modifiche"

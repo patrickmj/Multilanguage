@@ -2,12 +2,13 @@
 // From plugin LocaleSwitcher.
 
 /**
- * Convert a standard locale string (en_US)  into the language and region.
+ * Convert a standard locale string (en_US) into the language and region.
  *
  * @param string $locale
+ * @param boolean $justLanguage
  * @return string
  */
-function locale_human($locale)
+function locale_human($locale, $justLanguage=false)
 {
     $parts = explode('_', $locale);
     if (isset($parts[1])) {
@@ -23,7 +24,11 @@ function locale_human($locale)
         $region = " - $region";
     }
 
-    return ucfirst($language) . $region;
+	if (!$justLanguage) {
+		return ucfirst($language) . $region;
+	} else {
+		return ucfirst($language);
+	}
 }
 
 /**
