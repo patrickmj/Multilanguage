@@ -24,56 +24,100 @@ msgstr ""
 msgid "Multilanguage"
 msgstr "Multilingua"
 
-#: MultilanguagePlugin.php:56 MultilanguagePlugin.php:62
-#: views/shared/user-language/user-language.php:2
+#: MultilanguagePlugin.php:56 MultilanguagePlugin.php:335
+#: MultilanguagePlugin.php:56 MultilanguagePlugin.php:579
+#: views/shared/user-language/user-language.php:3
 msgid "Preferred Language"
 msgstr "Lingua preferita"
 
-#: MultilanguagePlugin.php:64
-msgid "Multilanguage Content"
-msgstr "Contenuto multilingua"
+#: MultilanguagePlugin.php:335
+msgid "Default language is %s."
+msgstr "La lingua predefinita è %s."
 
-#: MultilanguagePlugin.php:228
+#: MultilanguagePlugin.php:608
 msgid "Translate to: "
-msgstr "Traduci in:"
+msgstr "Traduci in: "
 
-#: config_form.php:4
+#: views/admin/plugins/multilanguage-config-form.php:2
+msgid "To learn more about translating the core interfaces, %sread this%s."
+msgstr "Per saperne di più sulla traduzione dell'interfaccia principale, %sleggi questo%s."
+
+#: views/admin/plugins/multilanguage-config-form.php:7
+msgid "Automatically append to header"
+msgstr "Aggiungi automaticamente all'intestazione"
+
+#: views/admin/plugins/multilanguage-config-form.php:10
+msgid "If checked, the switcher will be automatically displayed via the hook \"public_header\", else you need to put it in your theme."
+msgstr "Se selezionato, le opzioni di scelta verranno automaticamente mostrate tramite l'hook \"public_header\", altrimenti dovrai inserirli manualmente nel tuoi tema."
+
+#: views/admin/plugins/multilanguage-config-form.php:18
+msgid "Reset translations"
+msgstr "Annulla le traduzioni"
+
+#: views/admin/plugins/multilanguage-config-form.php:22
+msgid "Reset all translations when files in \"plugins/Translations/languages\" or \"themes/my-theme/languages\" were updated manually."
+msgstr "Annulla tutte le traduzioni quandi i file in \"plugins/Translations/languages\" or \"themes/my-theme/languages\" sono aggiornati manualmente."
+
+#: views/admin/plugins/multilanguage-config-form.php:30
+msgid "Language display mode"
+msgstr "Modo di visualizzazione lingua"
+
+#: views/admin/plugins/multilanguage-config-form.php:33
+msgid "Select the language display mode for your site (both Admin and Public side)."
+msgstr "Seleziona il modo di visualizzazione lingua per il tuo sito (sia lato Admin che Pubblico)"
+
+#: views/admin/plugins/multilanguage-config-form.php:36
+msgid "Flag (default)"
+msgstr "Bandiera (predefinito)"
+
+#: views/admin/plugins/multilanguage-config-form.php:37
+msgid "2-letters language code"
+msgstr "Codice lingua di 2 lettere"
+
+#: views/admin/plugins/multilanguage-config-form.php:38
+msgid "Full language name"
+msgstr "Nome intero della lingua"
+
+#: views/admin/plugins/multilanguage-config-form.php:45
+msgid "Languages"
+msgstr "Lingue"
+
+#: views/admin/plugins/multilanguage-config-form.php:48
 msgid "Select the languages into which your site can be translated."
-msgstr "Seleziona le lingue in cui può essere tradotto il tuo sito."
+msgstr "Seleziona le lingue in vuoi rendere traducibile il tuo sito"
 
-#: config_form.php:41
-msgid ""
-"The languages available to translate content. To learn more about "
-"translating the core interfaces, <a "
-"href='http://omeka.org/codex/Translate_Omeka'>read this</a>."
-msgstr "Lingue disponibili per tradurre i contenuti. Per scoprire di più riguardo alla traduzione delle interfacce principali, <a href='http://omeka.org/codex/Translate_Omeka'>leggi questo</a>."
+#: views/admin/plugins/multilanguage-config-form.php:52
+msgid "Language"
+msgstr "Lingua"
 
-#: config_form.php:49
+#: views/admin/plugins/multilanguage-config-form.php:53
+msgid "Code"
+msgstr "Codice"
+
+#: views/admin/plugins/multilanguage-config-form.php:54
+msgid "Public"
+msgstr "Pubblico"
+
+#: views/admin/plugins/multilanguage-config-form.php:55
+msgid "Admin"
+msgstr "Admin"
+
+#: views/admin/plugins/multilanguage-config-form.php:80
+msgid "Record Elements"
+msgstr "Elementi dei record"
+
+#: views/admin/plugins/multilanguage-config-form.php:83
 msgid "Check the metadata fields that you want to make translatable."
-msgstr "Seleziona i campi di metadati che vuoi rendere traducibili."
+msgstr "Seleziona i campi di metadati che vuoi rendere traducibili"
 
-#: views/admin/translations/content-language.php:2
-msgid "Content Languages"
-msgstr "Lingue dei contenuti"
+#: views/shared/user-language/user-language.php:8
+msgid "Select your preferred language"
+msgstr "Seleziona la tua lingua preferita"
 
-#: views/admin/translations/content-language.php:25
-#, php-format
-msgid "Default language is %s"
-msgstr "La lingua predefinita è %s"
-
-#: views/admin/translations/content-language.php:26
-msgid "Exhibits"
-msgstr "Esposizione"
-
-#: views/admin/translations/content-language.php:43
-msgid "Simple Pages"
-msgstr "Simple Pages"
-
-#: views/shared/user-language/user-language.php:40
-msgid "Select your prefered language"
-msgstr "Scegli la tua lingua preferita"
-
-#: views/shared/user-language/user-language.php:43
-#, php-format
+#: views/shared/user-language/user-language.php:11
 msgid "The default language is %s"
-msgstr "La lingua predefinita è %s"
+msgstr "La lingua predefinita è"
+
+#: views/shared/user-language/user-language.php:20
+msgid "Save Changes"
+msgstr "Salva modifiche"

@@ -9,6 +9,7 @@ msgstr ""
 "Project-Id-Version: Locale\n"
 "Report-Msgid-Bugs-To: http://github.com/patrickmj/Multilanguage/issues\n"
 "POT-Creation-Date: 2014-09-21 17:49-0500\n"
+"PO-Revision-Date: 2021-03-27 22:33+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,56 +21,100 @@ msgstr ""
 msgid "Multilanguage"
 msgstr ""
 
-#: MultilanguagePlugin.php:56 MultilanguagePlugin.php:62
-#: views/shared/user-language/user-language.php:2
+#: MultilanguagePlugin.php:56 MultilanguagePlugin.php:335
+#: MultilanguagePlugin.php:56 MultilanguagePlugin.php:579
+#: views/shared/user-language/user-language.php:3
 msgid "Preferred Language"
 msgstr ""
 
-#: MultilanguagePlugin.php:64
-msgid "Multilanguage Content"
+#: MultilanguagePlugin.php:335
+msgid "Default language is %s."
 msgstr ""
 
-#: MultilanguagePlugin.php:228
+#: MultilanguagePlugin.php:608
 msgid "Translate to: "
 msgstr ""
 
-#: config_form.php:4
+#: views/admin/plugins/multilanguage-config-form.php:2
+msgid "To learn more about translating the core interfaces, %sread this%s."
+msgstr ""
+
+#: views/admin/plugins/multilanguage-config-form.php:7
+msgid "Automatically append to header"
+msgstr ""
+
+#: views/admin/plugins/multilanguage-config-form.php:10
+msgid "If checked, the switcher will be automatically displayed via the hook "public_header", else you need to put it in your theme."
+msgstr ""
+
+#: views/admin/plugins/multilanguage-config-form.php:18
+msgid "Reset translations"
+msgstr ""
+
+#: views/admin/plugins/multilanguage-config-form.php:22
+msgid "Reset all translations when files in "plugins/Translations/languages" or "themes/my-theme/languages" were updated manually."
+msgstr ""
+
+#: views/admin/plugins/multilanguage-config-form.php:30
+msgid "Language display mode"
+msgstr ""
+
+#: views/admin/plugins/multilanguage-config-form.php:33
+msgid "Select the language display mode for your site (both Admin and Public side)."
+msgstr ""
+
+#: views/admin/plugins/multilanguage-config-form.php:36
+msgid "Flag (default)"
+msgstr ""
+
+#: views/admin/plugins/multilanguage-config-form.php:37
+msgid "2-letters language code"
+msgstr ""
+
+#: views/admin/plugins/multilanguage-config-form.php:38
+msgid "Full language name"
+msgstr ""
+
+#: views/admin/plugins/multilanguage-config-form.php:45
+msgid "Languages"
+msgstr ""
+
+#: views/admin/plugins/multilanguage-config-form.php:48
 msgid "Select the languages into which your site can be translated."
 msgstr ""
 
-#: config_form.php:41
-msgid ""
-"The languages available to translate content. To learn more about "
-"translating the core interfaces, <a href='http://omeka.org/codex/"
-"Translate_Omeka'>read this</a>."
+#: views/admin/plugins/multilanguage-config-form.php:52
+msgid "Language"
 msgstr ""
 
-#: config_form.php:49
+#: views/admin/plugins/multilanguage-config-form.php:53
+msgid "Code"
+msgstr ""
+
+#: views/admin/plugins/multilanguage-config-form.php:54
+msgid "Public"
+msgstr ""
+
+#: views/admin/plugins/multilanguage-config-form.php:55
+msgid "Admin"
+msgstr ""
+
+#: views/admin/plugins/multilanguage-config-form.php:80
+msgid "Record Elements"
+msgstr ""
+
+#: views/admin/plugins/multilanguage-config-form.php:83
 msgid "Check the metadata fields that you want to make translatable."
 msgstr ""
 
-#: views/admin/translations/content-language.php:2
-msgid "Content Languages"
+#: views/shared/user-language/user-language.php:8
+msgid "Select your preferred language"
 msgstr ""
 
-#: views/admin/translations/content-language.php:25
-#, php-format
-msgid "Default language is %s"
-msgstr ""
-
-#: views/admin/translations/content-language.php:26
-msgid "Exhibits"
-msgstr ""
-
-#: views/admin/translations/content-language.php:43
-msgid "Simple Pages"
-msgstr ""
-
-#: views/shared/user-language/user-language.php:40
-msgid "Select your prefered language"
-msgstr ""
-
-#: views/shared/user-language/user-language.php:43
-#, php-format
+#: views/shared/user-language/user-language.php:11
 msgid "The default language is %s"
+msgstr ""
+
+#: views/shared/user-language/user-language.php:20
+msgid "Save Changes"
 msgstr ""
