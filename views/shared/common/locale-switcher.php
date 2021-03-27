@@ -32,9 +32,10 @@ if ($locales):
 	?>
 	<ul class="locale-switcher">
 		<?php 
+			$displayMode = get_option('multilanguage_display_mode');
 			foreach ($locales as $locale):
 				$country = $this->localeToCountry($locale);
-				switch (get_option('multilanguage_display_mode')) {
+				switch ($displayMode) {
 					case "code":
 						$content = "<span class=\"active\">[" . strtolower($country) . "]</span>";
 						break;
