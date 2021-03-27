@@ -541,7 +541,7 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
 
 	public function filterAdminNavigationGlobal($nav)
 	{
-		$showCountryCode = (bool) get_option('multilanguage_show_countrycode');
+		$displayMode = get_option('multilanguage_display_mode');
 		$enabledLocales = unserialize(get_option('multilanguage_locales_admin'));
 		if (empty($enabledLocales)) {
 			return $nav;
@@ -557,12 +557,25 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
 
 			$url = url('setlocale', array('locale' => $locale, 'redirect' => $currentUrl));
 			$title = locale_human($locale);
-			if (!$showCountryCode) $class = 'flag-icon flag-icon-' . strtolower($country);
+			$class = '';
+			$label = null;
+			
+			switch ($displayMode) {
+				case 'code':
+					$label = '[' . strtolower($country) . ']';
+					break;
+				case 'name':
+					$label = locale_human($locale, true);
+					break;
+				default:
+					$class = 'flag-icon flag-icon-' . strtolower($country);
+			}
+			
 			if ($locale === $currentLocale) {
 				$class .= ' active';
 			}
 			$link = array(
-				'label' => ($showCountryCode ? '[' . $locale . ']' : null),
+				'label' => $label,
 				'uri' => $url,
 				'class' => $class,
 				'title' => $title,
