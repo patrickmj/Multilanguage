@@ -629,7 +629,7 @@ CREATE TABLE IF NOT EXISTS $db->MultilanguageRelatedRecord (
 				$code
 			);
 		}
-		$components['form_controls'] .= '<ul class="multilanguage">' . $html . '</ul>';
+		$components['form_controls'] .= '<ul class="multilanguage">' . $html . '</ul><div style="flex-basis: 100%; height: 0">';
 		return $components;
 	}
 
