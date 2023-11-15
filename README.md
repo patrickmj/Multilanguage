@@ -6,6 +6,12 @@ Omeka multilanguage. It integrates the [locale switcher] from [BibLibre] for
 public front-end and admin back-end, and [Translations], for management of
 translations of specific or hard coded theme strings.
 
+Status
+--------
+**UNMAINTAINED**
+
+This plugin should be considered orphaned. The original main developer can no longer afford the maintenance time.
+Feel free to fork and continue development! I'm happy to include a link to it here if you do so.
 
 Installation
 ------------
